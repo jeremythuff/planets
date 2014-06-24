@@ -31,6 +31,7 @@ Game.prototype = {
             {
                 "name": "starfield one",
                 "src": "img/bg.layer.1.jpg",
+                "group": "background",
                 "settings": {
                     "layer": 0,
                     "size": 1,
@@ -42,6 +43,7 @@ Game.prototype = {
             {
                 "name": "large nebula",
                 "src": "img/bg.layer.2.jpg",
+                "group": "background",
                 "settings": {
                     "layer": 2,
                     "size": 1,
@@ -53,6 +55,7 @@ Game.prototype = {
             {
                 "name": "starfield two",
                 "src": "img/bg.layer.1.jpg",
+                "group": "background",
                 "settings": {
                     "layer": 2.15,
                     "size": 2,
@@ -64,6 +67,7 @@ Game.prototype = {
             {
                 "name": "small nebula",
                 "src": "img/bg.layer.3.png",
+                "group": "background",
                 "settings": {
                     "layer": 3,
                     "size": .5,
@@ -75,6 +79,7 @@ Game.prototype = {
             {
                 "name": "Fog nebula",
                 "src": "img/zoom-animation.jpg",
+                "group": "zoom",
                 "settings": {
                     "layer": 100,
                     "size": 2,
@@ -91,10 +96,12 @@ Game.prototype = {
         for(var i=0; i<assets.length; i++) {
             var name = assets[i].name;
             var src = assets[i].src
+            var group = assets[i].group
             var settings = assets[i].settings
 
             game.assets[name] = new Image;
-            game.assets[name].src = assets[i].src;
+            game.assets[name].src = src;
+            game.assets[name].group = group;
             game.assets[name].settings = settings;
         }
   		
@@ -120,14 +127,18 @@ Game.prototype = {
     	var game = this;
 
 
+
         for(var asset in game.assets) {
             var name = game.assets[asset].name;
             var src = game.assets[asset].src;
+            var group = game.assets[asset].group;
             var settings = game.assets[asset].settings;
 
-            game.ctx.globalAlpha  = settings.alpha;    
-            game.ctx.drawImage(game.assets[asset], (startX*settings.layer)+(game.canvas.width*settings.originX), (startY*settings.layer)+(game.canvas.height*settings.originY), game.canvas.width*settings.size, window.innerHeight*settings.size);
-            game.ctx.globalAlpha  = 1; 
+            if(group === "background") {
+                game.ctx.globalAlpha  = settings.alpha;    
+                game.ctx.drawImage(game.assets[asset], (startX*settings.layer)+(game.canvas.width*settings.originX), (startY*settings.layer)+(game.canvas.height*settings.originY), game.canvas.width*settings.size, window.innerHeight*settings.size);
+                game.ctx.globalAlpha  = 1; 
+            }
         }  
         
     },
