@@ -2,6 +2,7 @@ var Game = function() {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.assets = {};
+    this.map = {};
     this.screen.x = 0;
     this.screen.y = 0;
     return this;
@@ -112,6 +113,32 @@ Game.prototype = {
         }
 
     },
+    loadMap: function(name, cb) {
+        var game = this;
+
+        request = new XMLHttpRequest;
+        request.open('GET', "maps/"+name+".json", true);
+
+        request.onload = function() {
+          if (request.status >= 200 && request.status < 400){
+            var data = JSON.parse(request.responseText);
+            game.map = data;
+            console.log(game.map);
+            cb();
+          } else {
+            console.log("We reached our target server, but it returned an error");
+          }
+        };
+
+        request.onerror = function() {
+          console.log("There was a connection error of some sort");
+        };
+
+        request.send();
+    },
+    setMap: function(map) {
+        this.map = map;
+    },
     draw: function() {
         
         var game = this;
@@ -119,7 +146,7 @@ Game.prototype = {
         game.canvas.width = game.canvas.width;
         
         game.drawBG(game.screen.x, game.screen.y);
-        game.drawMap();
+        game.drawMap("test-data");
         game.drawForgrownd();
 
     },
@@ -142,7 +169,24 @@ Game.prototype = {
         }  
         
     },
-    drawMap: function() {
+    drawMap: function(map) {
+        
+        var game = this;
+
+        game.loadMap(map, function() {
+            var mapW = game.map.mapWidth;
+            var mapH = game.map.mapHeight;
+            var planets = game.map.planets;
+
+            for(var i=0; i < planets.length; i++) {
+                var x = planets[i].XCoordinate;
+                var y = planets[i].YCoordinate;
+                game.ctx.fillStyle = "#FF0000";
+                game.ctx.fillRect(x,y,3,3);
+
+            }
+            
+        });
     },
     drawForgrownd: function() {
     },
