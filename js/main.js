@@ -99,6 +99,18 @@ Game.prototype = {
                     "originX": -.5,
                     "originY": -.5
                 }
+            },
+            {
+                "name": "earthlike",
+                "src": "img/earthlike.png",
+                "group": "planets",
+                "settings": {
+                    "layer": 50,
+                    "size": 1,
+                    "alpha": .5,
+                    "originX": 0,
+                    "originY": 0
+                }
             }
 
         ]
@@ -133,7 +145,8 @@ Game.prototype = {
         request.onload = function() {
           if (request.status >= 200 && request.status < 400){
             var data = JSON.parse(request.responseText);
-            game.assets.map = data;
+            game.assets.map = data.game;
+            game.assets.map.connections = data.connections
             cb();
           } else {
             console.log("We reached our target server, but it returned an error");
@@ -192,18 +205,66 @@ Game.prototype = {
         game.assets.map.y = y;
         var oneLightYear = w/2000;
         var planets = game.assets.map.planets;
+        var allConnections = game.assets.map.connections;
+
+
+        for(var originId in allConnections) {
+            
+            var originPlanet; 
+            
+            for(var planet in planets) {
+                if(planets[planet].id == originId) originPlanet = planets[planet];  
+            }
+
+            var originX = x+originPlanet.XCoordinate*oneLightYear;
+            var originY = y+originPlanet.YCoordinate*oneLightYear;
+
+            for(var i=0;i<allConnections[originId].length;i++) {
+
+                var destinationPlanet; 
+            
+                for(var planet in planets) {
+                    if(planets[planet].id == allConnections[originId][i]) destinationPlanet = planets[planet];  
+                }
+
+                var destX = x+destinationPlanet.XCoordinate*oneLightYear;
+                var destY = y+destinationPlanet.YCoordinate*oneLightYear
+
+                game.ctx.strokeStyle = "#fff";
+                game.ctx.lineWidth = .25;
+                game.ctx.beginPath();
+                game.ctx.moveTo(originX, originY);
+                game.ctx.lineTo(destX, destY);
+                game.ctx.stroke();
+
+            }
+
+        }
 
         for(var i=0; i < planets.length; i++) {
             var planetX = x + planets[i].XCoordinate*oneLightYear;
             var planetY = y + planets[i].YCoordinate*oneLightYear;
             var planetName = planets[i].name;
             var planetTemp = parseInt(planets[i].temp);
+            var image = game.assets.images["earthlike"];
+            var settings = image.settings;
+            var planetColor = "#efefef"
+            if((planetTemp >= 0)&&(planetTemp <=14)) planetColor = "#4294f7";
+            if((planetTemp >= 15)&&(planetTemp <=35)) planetColor = "#678989";
+            if((planetTemp >= 36)&&(planetTemp <=60)) planetColor = "#1bba3e";
+            if((planetTemp >= 61)&&(planetTemp <=84)) planetColor = "#f7eb6c";
+            if((planetTemp >= 85)&&(planetTemp <=100)) planetColor = "#ff0000";
+
 
             game.ctx.beginPath();
             game.ctx.arc(planetX, planetY, w/(500), 0, 2 * Math.PI);
             game.ctx.closePath();
-            game.ctx.fillStyle = "#2f2f2f";
+            game.ctx.fillStyle = planetColor;
             game.ctx.fill();
+
+            // game.ctx.globalAlpha  = settings.alpha;    
+            // game.ctx.drawImage(game.assets.images["earthlike"], planetX, planetY, w/(150), w/(150));
+            // game.ctx.globalAlpha  = 1; 
 
             // game.ctx.font = ((z*3)*(planetSize))+'pt Calibri';
             // game.ctx.fillStyle = 'blue';
@@ -289,8 +350,8 @@ Game.prototype = {
             var mouseYOnScreen = clientY;
 
             //this calculates the position of the mouse over the drawn object on the screen
-            var mouseXOnImg = mouseXOnScreen-game.screen.x;
-            var mouseYOnImg = mouseYOnScreen-game.screen.y;
+            var mouseXOnImg = mouseXOnScreen-game.assets.map.x;
+            var mouseYOnImg = mouseYOnScreen-game.assets.map.y;
 
             //this calculated the cursors offset over the image as a % of the total images size
             var oldMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
@@ -307,28 +368,26 @@ Game.prototype = {
             game.screen.z<.5 ? game.screen.z=.5: game.screen.z=game.screen.z;
             game.screen.z>50 ? game.screen.z=50: game.screen.z=game.screen.z;
 
-            // //this recalculates the cursors position as a % of the total images size at the new level of zoom
-            //  var newMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
-            //  var newMouseYPosPercentOfImg = mouseYOnImg/(game.canvas.height*game.screen.z);
+            //this recalculates the cursors position as a % of the total images size at the new level of zoom
+             var newMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
+             var newMouseYPosPercentOfImg = mouseYOnImg/(game.canvas.height*game.screen.z);
 
 
 
 
-            // //this calculates the difference in the % of the total images size both before and after the zoom
-            // var percentXShift = newMouseXPosPercentOfImg - oldMouseXPosPercentOfImg;
-            // var percentYShift = newMouseYPosPercentOfImg - oldMouseYPosPercentOfImg;
+            //this calculates the difference in the % of the total images size both before and after the zoom
+            var percentXShift = newMouseXPosPercentOfImg - oldMouseXPosPercentOfImg;
+            var percentYShift = newMouseYPosPercentOfImg - oldMouseYPosPercentOfImg;
 
-            // // this converts the % into the the relative pixel distance at this level of zoom
-            // var pixelsNowEqualToPercentXShift = (game.screen.x*game.screen.z)*percentXShift;
-            // var pixelsNowEqualToPercentYShift = (game.screen.y*game.screen.z)*percentYShift;
+            // this converts the % into the the relative pixel distance at this level of zoom
+            var pixelsNowEqualToPercentXShift = (game.assets.map.x*game.screen.z)*percentXShift;
+            var pixelsNowEqualToPercentYShift = (game.assets.map.y*game.screen.z)*percentYShift;
 
-            // //this shifts x and y by the number of pixels represented by the shift in the cursors position relative tot eh image.
-            // game.screen.x += pixelsNowEqualToPercentXShift;
-            // game.screen.y += pixelsNowEqualToPercentYShift;
+            //this shifts x and y by the number of pixels represented by the shift in the cursors position relative tot eh image.
+            game.assets.map.x += pixelsNowEqualToPercentXShift;
+            game.assets.map.y += pixelsNowEqualToPercentYShift;
 
             game.draw(game.screen.x,game.screen.y,game.screen.z);
-
-            console.log(game.screen.z);
 
         }
     }
@@ -340,3 +399,4 @@ var Planet = function() {
 
 var myGame = new Game('myGame');
 myGame.init();
+console.log(myGame);
