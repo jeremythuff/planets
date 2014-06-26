@@ -15,6 +15,17 @@ var Game = function(name) {
 Game.prototype = {
     init: function() {
 
+        window.requestAnimFrame = (function(){
+          return  window.requestAnimationFrame       || 
+                  window.webkitRequestAnimationFrame || 
+                  window.mozRequestAnimationFrame    || 
+                  window.oRequestAnimationFrame      || 
+                  window.msRequestAnimationFrame     || 
+                  function(/* function */ callback, /* DOMElement */ element){
+                    window.setTimeout(callback, 1000 / 60);
+                  };
+        })();
+
     	var game = this;
     	var w = window.innerWidth;
     	var h = window.innerHeight;
@@ -24,7 +35,10 @@ Game.prototype = {
 	    game.canvas.height = h;
 	      
         game.loadAssets(function() {
-        	game.draw(game.screen.x, game.screen.y, game.screen.z);
+            (function animloop(){
+              window.requestAnimFrame(animloop);
+              game.draw(game.screen.x, game.screen.y, game.screen.z);
+            })();	
         });
     },
     loadAssets: function(cb) {
@@ -105,9 +119,7 @@ Game.prototype = {
         this.assets.map = map;
     },
     draw: function(x,y,z) {
-        
         var game = this;
-        
         game.canvas.width = game.canvas.width;
         
         game.drawBG(x,y,z);
@@ -144,7 +156,7 @@ Game.prototype = {
         game.assets.map.y = (y + ((game.canvas.height/2)-(game.assets.map.h/2)))+game.screen.y*4;
         game.assets.map.oneLightYear = game.assets.map.w/2000;
    
-        game.drawConnections(game.assets.map.planets);
+        //game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
     },
@@ -174,7 +186,7 @@ Game.prototype = {
                 var destY = game.assets.map.y+destinationPlanet.YCoordinate*game.assets.map.oneLightYear
 
                 game.ctx.strokeStyle = "#fff";
-                game.ctx.lineWidth = .05;
+                game.ctx.lineWidth = .08;
                 game.ctx.beginPath();
                 game.ctx.moveTo(originX, originY);
                 game.ctx.lineTo(destX, destY);
@@ -184,11 +196,11 @@ Game.prototype = {
 
         }
     },
-    drawPlanets: function(planets, x, y, z) {
+    drawPlanets: function(planets) {
         var game = this;
         for(var i=0; i < planets.length; i++) {
-            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
-            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear;
+            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear+game.screen.z;
+            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear+game.screen.z;
             var planetName = planets[i].name;
             var planetTemp = parseInt(planets[i].temp);
             var planetImage = game.assets.images["uknown"];
@@ -209,6 +221,9 @@ Game.prototype = {
     drawForgrownd: function() {
         
     },
+    drawGUI: function() {
+        
+    },
     listen: function(listener, cb) {
     	
         this.canvas.addEventListener(listener, function(evt) {
@@ -217,43 +232,46 @@ Game.prototype = {
 
     },
     screen: {
+        animate: function() {
+            window.requestAnimationFrame(game.screen.animate);
+            game.draw(game.screen.x, game.screen.y, game.screen.z);
+        },
         move: function($this, direction) {
             var game = $this;
 
-            if((typeof(moveScreen)==='undefined')||(moveScreen===false)) {
-                moveScreen = setInterval(function() {
-                        if((game.assets.map.w < game.canvas.width)&&(game.assets.map.h < game.canvas.height)) {
-                            if(game.assets.map.x < 10) {
-                                clearInterval(moveScreen);
-                                moveScreen = false;
-                                game.screen.x += 2;
-                            }
-                            if((game.assets.map.x+game.assets.map.w) > game.canvas.width-10) {
-                                clearInterval(moveScreen);
-                                moveScreen = false;
-                                game.screen.x -= 2;
-                            }
-                            if(game.assets.map.y < 10) {
-                                clearInterval(moveScreen);
-                                moveScreen = false;
-                                game.screen.y += 2;
-                            }
-                            if((game.assets.map.y+game.assets.map.h) > game.canvas.height-10) {
-                                clearInterval(moveScreen);
-                                moveScreen = false;
-                                game.screen.y -= 2;
-                            }
-                        } else {
-                            console.log("screen scrollable");
-                        }  
-                        if(direction === "left") game.screen.x += game.screen.z;
-                        if(direction === "right") game.screen.x -= game.screen.z;
-                        if(direction === "up") game.screen.y += game.screen.z;
-                        if(direction === "down") game.screen.y -= game.screen.z;
-                        if(direction != "stop") game.draw(game.screen.x, game.screen.y, game.screen.z);
+
+                    // if((game.assets.map.w < game.canvas.width)&&(game.assets.map.h < game.canvas.height)) {
+                    //     if(game.assets.map.x < 10) {
+                    //         clearInterval(moveScreen);
+                    //         moveScreen = false;
+                    //         game.screen.x += 2;
+                    //     }
+                    //     if((game.assets.map.x+game.assets.map.w) > game.canvas.width-10) {
+                    //         clearInterval(moveScreen);
+                    //         moveScreen = false;
+                    //         game.screen.x -= 2;
+                    //     }
+                    //     if(game.assets.map.y < 10) {
+                    //         clearInterval(moveScreen);
+                    //         moveScreen = false;
+                    //         game.screen.y += 2;
+                    //     }
+                    //     if((game.assets.map.y+game.assets.map.h) > game.canvas.height-10) {
+                    //         clearInterval(moveScreen);
+                    //         moveScreen = false;
+                    //         game.screen.y -= 2;
+                    //     }
+                    // } else {
+                    //     //console.log("screen scrollable");
+                    // } 
+
+                    if(direction === "left") game.screen.x += .5;
+                    if(direction === "right") game.screen.x -= .5;
+                    if(direction === "up") game.screen.y += .5;
+                    if(direction === "down") game.screen.y -= .5;
                 
-                }, 100/game.screen.z); 
-            }
+         
+            //}
         },
         zoom: function($this, clientX, clientY, delta) {
             var game = $this;
@@ -300,12 +318,6 @@ Game.prototype = {
             game.assets.map.x += pixelsNowEqualToPercentXShift;
             game.assets.map.y += pixelsNowEqualToPercentYShift;
 
-            game.draw(game.screen.x,game.screen.y,game.screen.z);
-
         }
     }
-}
-
-var Planet = function() {
-    return this;
 }
