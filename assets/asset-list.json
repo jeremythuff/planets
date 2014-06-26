@@ -1,0 +1,134 @@
+[
+    {
+        "name": "starfield one",
+        "src": "img/bg.layer.1.jpg",
+        "group": "background",
+        "settings": {
+            "layer": "0",
+            "size": "1",
+            "alpha": ".1",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "large nebula",
+        "src": "img/bg.layer.2.png",
+        "group": "background",
+        "settings": {
+            "layer": "2",
+            "size": "1",
+            "alpha": ".175",
+            "originX": ".45",
+            "originY": ".45"
+        }
+    },
+    {
+        "name": "starfield two",
+        "src": "img/bg.layer.1.jpg",
+        "group": "background",
+        "settings": {
+            "layer": "2.15",
+            "size": "2",
+            "alpha": ".115",
+            "originX": "-.5",
+            "originY": "-.5"
+        }
+    },
+    {
+        "name": "small nebula",
+        "src": "img/bg.layer.3.png",
+        "group": "background",
+        "settings": {
+            "layer": "3",
+            "size": ".5",
+            "alpha": ".15",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "Fog nebula",
+        "src": "img/zoom-animation.jpg",
+        "group": "zoom",
+        "settings": {
+            "layer": "100",
+            "size": "2",
+            "alpha": ".05",
+            "originX": "-.5",
+            "originY": "-.5"
+        }
+    },
+    {
+        "name": "ice",
+        "src": "img/ice.png",
+        "group": "planets",
+        "settings": {
+            "layer": 50,
+            "size": 1,
+            "alpha": 1,
+            "originX": 0,
+            "originY": 0
+        }
+    },
+    {
+        "name": "cold",
+        "src": "img/cold.png",
+        "group": "planets",
+        "settings": {
+            "layer": "50",
+            "size": "1",
+            "alpha": "1",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "earthlike",
+        "src": "img/earthlike.png",
+        "group": "planets",
+        "settings": {
+            "layer": "50",
+            "size": "1",
+            "alpha": "1",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "warm",
+        "src": "img/warm.png",
+        "group": "planets",
+        "settings": {
+            "layer": "50",
+            "size": "1",
+            "alpha": "1",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "hot",
+        "src": "img/hot.png",
+        "group": "planets",
+        "settings": {
+            "layer": "50",
+            "size": "1",
+            "alpha": "1",
+            "originX": "0",
+            "originY": "0"
+        }
+    },
+    {
+        "name": "uknown",
+        "src": "img/uknown.png",
+        "group": "planets",
+        "settings": {
+            "layer": "50",
+            "size": "1",
+            "alpha": "1",
+            "originX": "0",
+            "originY": "0"
+        }
+    }
+]

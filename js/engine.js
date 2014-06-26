@@ -1,4 +1,5 @@
-var Game = function() {
+var Game = function(name) {
+    this.name = name;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.assets= {
@@ -25,8 +26,6 @@ Game.prototype = {
         game.loadAssets(function() {
         	game.draw(game.screen.x, game.screen.y, game.screen.z);
         });
-
-        game.addEventListeners();
     },
     loadAssets: function(cb) {
         var game = this;
@@ -38,116 +37,46 @@ Game.prototype = {
     },
     loadImages: function(cb) {
         var game = this;
-        var loadedImages = 0;
-        var images = [
-            {
-                "name": "starfield one",
-                "src": "img/bg.layer.1.jpg",
-                "group": "background",
-                "settings": {
-                    "layer": 0,
-                    "size": 1,
-                    "alpha": .1,
-                    "originX": 0,
-                    "originY": 0
-                }
-            },
-            {
-                "name": "large nebula",
-                "src": "img/bg.layer.2.jpg",
-                "group": "background",
-                "settings": {
-                    "layer": 2,
-                    "size": 1,
-                    "alpha": .175,
-                    "originX": .45,
-                    "originY": .45
-                }
-            },
-            {
-                "name": "starfield two",
-                "src": "img/bg.layer.1.jpg",
-                "group": "background",
-                "settings": {
-                    "layer": 2.15,
-                    "size": 2,
-                    "alpha": .115,
-                    "originX": -.5,
-                    "originY": -.5
-                }
-            },
-            {
-                "name": "small nebula",
-                "src": "img/bg.layer.3.png",
-                "group": "background",
-                "settings": {
-                    "layer": 3,
-                    "size": .5,
-                    "alpha": .15,
-                    "originX": 0,
-                    "originY": 0
-                }
-            },
-            {
-                "name": "Fog nebula",
-                "src": "img/zoom-animation.jpg",
-                "group": "zoom",
-                "settings": {
-                    "layer": 100,
-                    "size": 2,
-                    "alpha": .05,
-                    "originX": -.5,
-                    "originY": -.5
-                }
-            },
-            {
-                "name": "earthlike",
-                "src": "img/earthlike.png",
-                "group": "planets",
-                "settings": {
-                    "layer": 50,
-                    "size": 1,
-                    "alpha": .5,
-                    "originX": 0,
-                    "originY": 0
+      
+        
+        game.getResource({
+            url: "assets/asset-list.json" 
+        }, function(images) {
+            var loadedImages = 0;
+            var AssetKeys = Object.keys(images).length;
+
+            for(var i=0; i<images.length; i++) {
+                var name = images[i].name;
+                var src = images[i].src
+                var group = images[i].group
+                var settings = images[i].settings
+
+                game.assets.images[name] = new Image;
+                game.assets.images[name].src = src;
+                game.assets.images[name].group = group;
+                game.assets.images[name].settings = settings;
+            }
+            
+            for(var src in game.assets.images) {
+                game.assets.images[src].onload = function() {
+                    if(++loadedImages >= Object.keys(game.assets.images).length) cb();      
                 }
             }
-
-        ]
+        });
         
-        var AssetKeys = Object.keys(images).length;
-
-        for(var i=0; i<images.length; i++) {
-            var name = images[i].name;
-            var src = images[i].src
-            var group = images[i].group
-            var settings = images[i].settings
-
-            game.assets.images[name] = new Image;
-            game.assets.images[name].src = src;
-            game.assets.images[name].group = group;
-            game.assets.images[name].settings = settings;
-        }
-  		
-        for(var src in game.assets.images) {
-        	game.assets.images[src].onload = function() {
-        		if(++loadedImages >= Object.keys(game.assets.images).length) cb();		
-        	}
-        }
+        
 
     },
-    loadMap: function(name, cb) {
+    getResource: function(req, cb) {
+
         var game = this;
 
         request = new XMLHttpRequest;
-        request.open('GET', "maps/"+name+".json", true);
+        request.open('GET', req.url, true);
 
         request.onload = function() {
           if (request.status >= 200 && request.status < 400){
-            var data = JSON.parse(request.responseText);
-            game.assets.map = data.game;
-            game.assets.map.connections = data.connections
-            cb();
+            cb(JSON.parse(request.responseText));
           } else {
             console.log("We reached our target server, but it returned an error");
           }
@@ -158,6 +87,19 @@ Game.prototype = {
         };
 
         request.send();
+
+    },
+    loadMap: function(name, cb) {
+        var game = this;
+
+        game.getResource({
+            url: "maps/"+name+".json" 
+        }, function(data) {
+            game.assets.map = data.game;
+            game.assets.map.connections = data.connections
+            cb();
+        });
+
     },
     setMap: function(map) {
         this.assets.map = map;
@@ -195,29 +137,30 @@ Game.prototype = {
     drawMap: function(x, y, z) {
 
         var game = this;
-        var w = ((game.canvas.height)*z)-(game.canvas.height*.1);
-        game.assets.map.w = w; 
-        var h = w;
-        game.assets.map.h = h; 
-        var x = (x + ((game.canvas.width/2)-(w/2)))+game.screen.x*4;
-        game.assets.map.x = x;
-        var y = (y + ((game.canvas.height/2)-(h/2)))+game.screen.y*4;
-        game.assets.map.y = y;
-        var oneLightYear = w/2000;
-        var planets = game.assets.map.planets;
+
+        game.assets.map.w = ((game.canvas.height)*z)-(game.canvas.height*.1);
+        game.assets.map.h = game.assets.map.w;
+        game.assets.map.x = (x + ((game.canvas.width/2)-(game.assets.map.w/2)))+game.screen.x*4;
+        game.assets.map.y = (y + ((game.canvas.height/2)-(game.assets.map.h/2)))+game.screen.y*4;
+        game.assets.map.oneLightYear = game.assets.map.w/2000;
+   
+        game.drawConnections(game.assets.map.planets);
+        game.drawPlanets(game.assets.map.planets);
+
+    },
+    drawConnections: function(planets) {
+        var game = this;
         var allConnections = game.assets.map.connections;
-
-
         for(var originId in allConnections) {
-            
+
             var originPlanet; 
             
             for(var planet in planets) {
                 if(planets[planet].id == originId) originPlanet = planets[planet];  
             }
 
-            var originX = x+originPlanet.XCoordinate*oneLightYear;
-            var originY = y+originPlanet.YCoordinate*oneLightYear;
+            var originX = game.assets.map.x+originPlanet.XCoordinate*game.assets.map.oneLightYear;
+            var originY = game.assets.map.y+originPlanet.YCoordinate*game.assets.map.oneLightYear;
 
             for(var i=0;i<allConnections[originId].length;i++) {
 
@@ -227,11 +170,11 @@ Game.prototype = {
                     if(planets[planet].id == allConnections[originId][i]) destinationPlanet = planets[planet];  
                 }
 
-                var destX = x+destinationPlanet.XCoordinate*oneLightYear;
-                var destY = y+destinationPlanet.YCoordinate*oneLightYear
+                var destX = game.assets.map.x+destinationPlanet.XCoordinate*game.assets.map.oneLightYear;
+                var destY = game.assets.map.y+destinationPlanet.YCoordinate*game.assets.map.oneLightYear
 
                 game.ctx.strokeStyle = "#fff";
-                game.ctx.lineWidth = .25;
+                game.ctx.lineWidth = .05;
                 game.ctx.beginPath();
                 game.ctx.moveTo(originX, originY);
                 game.ctx.lineTo(destX, destY);
@@ -240,66 +183,36 @@ Game.prototype = {
             }
 
         }
-
+    },
+    drawPlanets: function(planets, x, y, z) {
+        var game = this;
         for(var i=0; i < planets.length; i++) {
-            var planetX = x + planets[i].XCoordinate*oneLightYear;
-            var planetY = y + planets[i].YCoordinate*oneLightYear;
+            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
+            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear;
             var planetName = planets[i].name;
             var planetTemp = parseInt(planets[i].temp);
-            var image = game.assets.images["earthlike"];
-            var settings = image.settings;
+            var planetImage = game.assets.images["uknown"];
+            var settings = planetImage.settings;
             var planetColor = "#efefef"
-            if((planetTemp >= 0)&&(planetTemp <=14)) planetColor = "#4294f7";
-            if((planetTemp >= 15)&&(planetTemp <=35)) planetColor = "#678989";
-            if((planetTemp >= 36)&&(planetTemp <=60)) planetColor = "#1bba3e";
-            if((planetTemp >= 61)&&(planetTemp <=84)) planetColor = "#f7eb6c";
-            if((planetTemp >= 85)&&(planetTemp <=100)) planetColor = "#ff0000";
+            if((planetTemp >= 0)&&(planetTemp <=14)) planetImage = game.assets.images["ice"];
+            if((planetTemp >= 15)&&(planetTemp <=35)) planetImage = game.assets.images["cold"];
+            if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
+            if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
+            if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
 
+            game.ctx.globalAlpha  = settings.alpha;    
+            game.ctx.drawImage(planetImage, planetX-((game.assets.map.w/(150))/2), planetY-((game.assets.map.w/(150))/2), game.assets.map.w/(150), game.assets.map.w/(150));
+            game.ctx.globalAlpha  = 1; 
 
-            game.ctx.beginPath();
-            game.ctx.arc(planetX, planetY, w/(500), 0, 2 * Math.PI);
-            game.ctx.closePath();
-            game.ctx.fillStyle = planetColor;
-            game.ctx.fill();
-
-            // game.ctx.globalAlpha  = settings.alpha;    
-            // game.ctx.drawImage(game.assets.images["earthlike"], planetX, planetY, w/(150), w/(150));
-            // game.ctx.globalAlpha  = 1; 
-
-            // game.ctx.font = ((z*3)*(planetSize))+'pt Calibri';
-            // game.ctx.fillStyle = 'blue';
-            // game.ctx.fillText(planetName, planetX, planetY-((w/(500/planetSize))+10));
         }
     },
     drawForgrownd: function() {
+        
     },
-    addEventListeners: function() {
-    	var game = this;
-    	this.canvas.addEventListener('mousemove', function(evt) {
-	        
-	        var w = window.innerWidth;
-	        var h = window.innerHeight;
-            var sensativity = 5;
-
-
-	        if((evt.x < sensativity)||(evt.x > (w-sensativity))||(evt.y < sensativity)||(evt.y > (h-sensativity))) {	
-	        	if (evt.x < sensativity) game.screen.move(game, "left");
-                if (evt.x > (w-sensativity)) game.screen.move(game, "right");
-                if (evt.y < sensativity) game.screen.move(game, "up");
-                if (evt.y > (h-sensativity)) game.screen.move(game, "down");   
-	        } else {
-                
-                if(typeof(moveScreen)!='undefined') {
-                    clearInterval(moveScreen);
-                    moveScreen = false;
-                }
-            }
-
-	    }, false);
-
-        this.canvas.addEventListener('mousewheel', function(evt) {
-           game.screen.zoom(game, evt.clientX, evt.clientY, evt.wheelDelta);
-
+    listen: function(listener, cb) {
+    	
+        this.canvas.addEventListener(listener, function(evt) {
+            cb(evt);
         }, false);
 
     },
@@ -331,15 +244,15 @@ Game.prototype = {
                                 game.screen.y -= 2;
                             }
                         } else {
-                            console.log("blah");
+                            console.log("screen scrollable");
                         }  
-                        if(direction === "left") game.screen.x += 1;
-                        if(direction === "right") game.screen.x -= 1;
-                        if(direction === "up") game.screen.y += 1;
-                        if(direction === "down") game.screen.y -= 1;
+                        if(direction === "left") game.screen.x += game.screen.z;
+                        if(direction === "right") game.screen.x -= game.screen.z;
+                        if(direction === "up") game.screen.y += game.screen.z;
+                        if(direction === "down") game.screen.y -= game.screen.z;
                         if(direction != "stop") game.draw(game.screen.x, game.screen.y, game.screen.z);
                 
-                }, 100); 
+                }, 100/game.screen.z); 
             }
         },
         zoom: function($this, clientX, clientY, delta) {
@@ -365,8 +278,8 @@ Game.prototype = {
             */
             game.screen.z += Math.abs(delta)*delta*(game.screen.z/150000);
             //this places a min/max zoom in/out level
-            game.screen.z<.5 ? game.screen.z=.5: game.screen.z=game.screen.z;
-            game.screen.z>50 ? game.screen.z=50: game.screen.z=game.screen.z;
+            game.screen.z < 1 ? game.screen.z = 1: game.screen.z=game.screen.z;
+            game.screen.z > 25 ? game.screen.z = 25: game.screen.z=game.screen.z;
 
             //this recalculates the cursors position as a % of the total images size at the new level of zoom
              var newMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
@@ -396,7 +309,3 @@ Game.prototype = {
 var Planet = function() {
     return this;
 }
-
-var myGame = new Game('myGame');
-myGame.init();
-console.log(myGame);
