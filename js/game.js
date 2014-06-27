@@ -14,11 +14,7 @@ planets.listen("mousemove", function(evt) {
         if (evt.y < sensativity) planets.screen.move(planets, "up");
         if (evt.y > (h-sensativity)) planets.screen.move(planets, "down");   
     } else {
-        
-        if(typeof(moveScreen)!='undefined') {
-            clearInterval(moveScreen);
-            moveScreen = false;
-        }
+        planets.screen.move(planets, "stop");
     }
 });
 
