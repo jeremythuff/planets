@@ -14,12 +14,12 @@ planets.listen("mousemove", function(evt) {
         if (evt.y < sensativity) planets.screen.move(planets, "up");
         if (evt.y > (h-sensativity)) planets.screen.move(planets, "down");   
     } else {
-        planets.screen.move("stop");
+        planets.screen.move(planets, "stop");
     }
 });
 
 planets.listen('mousewheel', function(evt) {
-   planets.screen.zoom(evt.clientX, evt.clientY, evt.wheelDelta);
+   planets.screen.zoom(planets, evt.clientX, evt.clientY, evt.wheelDelta);
 });
 
 planets.init();
