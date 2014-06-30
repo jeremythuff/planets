@@ -18,6 +18,8 @@ var Game = function(name) {
     this.name = name;
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
+    this.canvas2 = document.createElement('canvas');
+    this.ctx2 = this.canvas.getContext('2d');
     this.assets= {
         images: {},
         map: {}
@@ -31,6 +33,11 @@ var Game = function(name) {
 
 Game.prototype = {
     init: function() {
+
+        var lastCalledTime;
+        var fps = 1;
+        var fpsCounter = 1;
+        var fpsOut = document.getElementById('fps');
 
         window.requestAnimFrame = (function(){
           return  window.requestAnimationFrame       || 
@@ -50,11 +57,28 @@ Game.prototype = {
     	document.body.appendChild(game.canvas);
 		game.canvas.width = w;
 	    game.canvas.height = h;
+
+        document.body.appendChild(game.canvas2);
+        game.canvas2.width = w;
+        game.canvas2.height = h;
 	      
         game.loadAssets(function() {
             (function animloop(){
-              window.requestAnimFrame(animloop);
-              game.draw(game.screen.x, game.screen.y, game.screen.z);
+                window.requestAnimFrame(animloop);
+              
+                if(!lastCalledTime) {
+                    lastCalledTime = new Date().getTime();
+                    fps = 0;
+                    return;
+                }
+                
+                delta = (new Date().getTime() - lastCalledTime)/1000;
+                lastCalledTime = new Date().getTime();
+                fps = 1/delta;
+
+                if(fpsCounter++ % (Math.round(fps / 10)*10) === 0)fpsOut.innerHTML = "<span style='color:orange'>fps: "+Math.round(fps, 2)+"</span>";
+
+                game.draw(game.screen.x, game.screen.y, game.screen.z);
             })();	
         });
     },
@@ -193,7 +217,7 @@ Game.prototype = {
         var game = this;
         game.canvas.width = game.canvas.width;
         
-        game.drawBG(x,y,z);
+        //game.drawBG(x,y,z);
         game.drawMap(x,y,z);
         game.drawForgrownd(x,y,z);
 
@@ -237,7 +261,7 @@ Game.prototype = {
     drawConnections: function(planets) {
         var game = this;
         var connections = game.assets.map.connections;
-        game.ctx.beginPath();
+        game.ctx2.beginPath();
         for(connection in connections) {
 
             var originX = game.assets.map.x + connections[connection]["originX"]*game.assets.map.oneLightYear+game.screen.z;
@@ -251,14 +275,14 @@ Game.prototype = {
 
 
             if((game.screen.utils.pointIsOnScreen(game,originX,originY))||(game.screen.utils.pointIsOnScreen(game,destX,destY))) {    
-                game.ctx.strokeStyle = "#fff";
-                game.ctx.lineWidth = .2;
+                game.ctx2.strokeStyle = "#fff";
+                game.ctx2.lineWidth = .2;
                
-                game.ctx.moveTo(originX, originY);
-                game.ctx.lineTo(destX, destY);
+                game.ctx2.moveTo(originX, originY);
+                game.ctx2.lineTo(destX, destY);
             }
         }
-        game.ctx.stroke();
+        game.ctx2.stroke();
     },
     drawPlanets: function(planets) {
         var game = this;
@@ -283,9 +307,9 @@ Game.prototype = {
                 if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
                 if(game.screen.z < 1.5) planetImage = game.assets.images["uknown"];
 
-                game.ctx.globalAlpha  = settings.alpha;    
-                game.ctx.drawImage(planetImage, planetX-((game.assets.map.w/(150))/2), planetY-((game.assets.map.w/(150))/2), game.assets.map.w/(150), game.assets.map.w/(150));
-                game.ctx.globalAlpha  = 1; 
+                game.ctx2.globalAlpha  = settings.alpha;    
+                game.ctx2.drawImage(planetImage, planetX-((game.assets.map.w/(150))/2), planetY-((game.assets.map.w/(150))/2), game.assets.map.w/(150), game.assets.map.w/(150));
+                game.ctx2.globalAlpha  = 1; 
             }
         }
     },
@@ -305,7 +329,7 @@ Game.prototype = {
     },
     listen: function(listener, cb) {
     	
-        this.canvas.addEventListener(listener, function(evt) {
+        window.addEventListener(listener, function(evt) {
             cb(evt);
         }, false);
 

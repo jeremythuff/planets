@@ -94,18 +94,21 @@ textarea {
    ========================================================================== */
 
 
+body {
+    background-color: #111;
+    position: relative;
+}
 
-canvas { 
-    display:block; 
-    background: #111;
+canvas,
+#fps { 
     position: absolute;
     top: 0px;
     left: 0px;
 } /* To remove the scrollbars */
 
-
-
-
+#fps {
+    color: #fff;
+}
 
 
 
