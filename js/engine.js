@@ -16,18 +16,25 @@
 */
 var Game = function(name) {
     this.name = name;
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.canvas2 = document.createElement('canvas');
-    this.ctx2 = this.canvas.getContext('2d');
+
+    this.screen.bgCanvas = document.createElement('canvas');
+    this.screen.ctx = this.screen.bgCanvas.getContext('2d');
+    this.screen.mgCanvas = document.createElement('canvas');
+    this.screen.mg = this.screen.mgCanvas.getContext('2d');
+    this.screen.fgCanvas = document.createElement('canvas');
+    this.screen.fg = this.screen.fgCanvas.getContext('2d');
+    this.screen.guiCanvas = document.createElement('canvas');
+    this.screen.gui = this.screen.guiCanvas.getContext('2d');
+    this.screen.offScreenCanvas = document.createElement('canvas');
+    this.screen.offScreen = this.screen.offScreenCanvas.getContext('2d');  
+    
     this.assets= {
         images: {},
         map: {}
     };
-    this.bg = {};
+
     this.screen.x = 0;
     this.screen.y = 0;
-    this.screen.z = 1;
     return this;
 }
 
@@ -45,7 +52,7 @@ Game.prototype = {
                   window.mozRequestAnimationFrame    || 
                   window.oRequestAnimationFrame      || 
                   window.msRequestAnimationFrame     || 
-                  function(/* function */ callback, /* DOMElement */ element){
+                  function(callback){
                     window.setTimeout(callback, 1000 / 60);
                   };
         })();
@@ -54,13 +61,25 @@ Game.prototype = {
     	var w = window.innerWidth;
     	var h = window.innerHeight;
 
-    	document.body.appendChild(game.canvas);
-		game.canvas.width = w;
-	    game.canvas.height = h;
+    	document.body.appendChild(game.screen.bgCanvas);
+		game.screen.bgCanvas.width = w;
+	    game.screen.bgCanvas.height = h;
 
-        document.body.appendChild(game.canvas2);
-        game.canvas2.width = w;
-        game.canvas2.height = h;
+        document.body.appendChild(game.screen.mgCanvas);
+        game.screen.mgCanvas.width = w;
+        game.screen.mgCanvas.height = h;
+
+        document.body.appendChild(game.screen.fgCanvas);
+        game.screen.fgCanvas.width = w;
+        game.screen.fgCanvas.height = h;
+
+        document.body.appendChild(game.screen.guiCanvas);
+        game.screen.guiCanvas.width = w;
+        game.screen.guiCanvas.height = h;
+
+        document.body.appendChild(game.screen.offScreenCanvas);
+        game.screen.offScreenCanvas.width = w;
+        game.screen.offScreenCanvas.height = h;
 	      
         game.loadAssets(function() {
             (function animloop(){
@@ -78,7 +97,7 @@ Game.prototype = {
 
                 if(fpsCounter++ % (Math.round(fps / 10)*10) === 0)fpsOut.innerHTML = "<span style='color:orange'>fps: "+Math.round(fps, 2)+"</span>";
 
-                game.draw(game.screen.x, game.screen.y, game.screen.z);
+                game.draw(game.screen.x, game.screen.y);
             })();	
         });
     },
@@ -92,6 +111,7 @@ Game.prototype = {
     },
     loadImages: function(cb) {
         var game = this;
+        var prevImage;
       
         
         game.getResource({
@@ -110,10 +130,14 @@ Game.prototype = {
                 game.assets.images[name].src = src;
                 game.assets.images[name].group = group;
                 game.assets.images[name].settings = settings;
+                game.assets.images[name].buffer = {};
+                prevImage = game.assets.images[name];
+
             }
             
             for(var src in game.assets.images) {
                 game.assets.images[src].onload = function() {
+
                     if(++loadedImages >= Object.keys(game.assets.images).length) cb();      
                 }
             }
@@ -152,15 +176,9 @@ Game.prototype = {
         }, function(data) {
             game.assets.map = data.game;
 
-            game.assets.map.w = ((game.canvas.height)*game.screen.z)-(game.canvas.height*.1);
-            game.assets.map.h = game.assets.map.w;
-            game.assets.map.x = (game.screen.x + ((game.canvas.width/2)-(game.assets.map.w/2)))+game.screen.x*4;
-            game.assets.map.y = (game.screen.y + ((game.canvas.height/2)-(game.assets.map.h/2)))+game.screen.y*4;
-            game.assets.map.oneLightYear = game.assets.map.w/2000;
             game.assets.map.connections = [];
 
             var planets = game.assets.map.planets
-
 
             var allConnections = data.connections;
 
@@ -172,8 +190,6 @@ Game.prototype = {
                     if(planets[planet].id == originId) originPlanet = planets[planet];  
                 }
 
-                // var originX = game.assets.map.x+originPlanet.XCoordinate*game.assets.map.oneLightYear;
-                // var originY = game.assets.map.y+originPlanet.YCoordinate*game.assets.map.oneLightYear;
                 var originX = originPlanet.XCoordinate
                 var originY = originPlanet.YCoordinate
 
@@ -213,47 +229,61 @@ Game.prototype = {
     setMap: function(map) {
         this.assets.map = map;
     },
-    draw: function(x,y,z) {
+    draw: function(x,y) {
         var game = this;
-        game.canvas.width = game.canvas.width;
         
-        //game.drawBG(x,y,z);
-        game.drawMap(x,y,z);
-        game.drawForgrownd(x,y,z);
+        //game.drawBG(x,y);
+        game.drawMap(x,y);
+        game.drawForgrownd(x,y);
 
     },
-    drawBG: function(x,y,z) {
+    clearScreen: function() {
+        var game = this;
+        game.screen.bgCanvas.width = game.screen.bgCanvas.width;
+        game.screen.mgCanvas.width = game.screen.mgCanvas.width;
+        game.screen.fgCanvas.width = game.screen.fgCanvas.width;
+        game.screen.guiCanvas.width = game.screen.guiCanvas.width;
+    },
+    drawBG: function(x,y) {
     	var game = this;
+
+        game.screen.bgCanvas.width = game.screen.bgCanvas.width;
 
         for(var asset in game.assets.images) {
             var name = game.assets.images[asset].name;
             var src = game.assets.images[asset].src;
             var group = game.assets.images[asset].group;
             var settings = game.assets.images[asset].settings;
-            game.bg.x = Math.round((x*settings.layer)/game.screen.z+(game.canvas.width*settings.originX));
-            game.bg.y = Math.round((y*settings.layer)/game.screen.z+(game.canvas.height*settings.originY));
+            game.bg.x = Math.round((x*settings.layer)+(game.screen.bgCanvas.width*settings.originX));
+            game.bg.y = Math.round((y*settings.layer)+(game.screen.bgCanvas.height*settings.originY));
 
             if(group === "background") {
-                game.ctx.globalAlpha  = settings.alpha;    
-                game.ctx.drawImage(game.assets.images[asset], game.bg.x, game.bg.y, game.canvas.width*settings.size, window.innerHeight*settings.size);
-                game.ctx.globalAlpha  = 1; 
+                game.screen.ctx.globalAlpha  = settings.alpha;    
+                game.screen.ctx.drawImage(game.assets.images[asset], game.bg.x, game.bg.y, game.screen.bgCanvas.width*settings.size, window.innerHeight*settings.size);
+                game.screen.ctx.globalAlpha  = 1; 
             }
         }  
         
     },
-    drawMap: function(x, y, z) {
+    drawMap: function(x,y) {
 
         var game = this;
+
+        game.screen.mgCanvas.width = game.screen.mgCanvas.width;
 
         x = Math.round(x);
         y = Math.round(y);
 
-        game.assets.map.w = ((game.canvas.height)*z)-(game.canvas.height*.1);
+
+        game.assets.map.w = game.screen.mgCanvas.height/2;
         game.assets.map.h = game.assets.map.w;
-        game.assets.map.x = Math.round((x + ((game.canvas.width/2)-(game.assets.map.w/2)))+game.screen.x*4);
-        game.assets.map.y = Math.round((y + ((game.canvas.height/2)-(game.assets.map.h/2)))+game.screen.y*4);
+        game.assets.map.x = Math.round(x);
+        game.assets.map.y = Math.round(y);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
-   
+        
+
+        console.log(game.screen.mgCanvas.height); 
+
         game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
@@ -261,13 +291,13 @@ Game.prototype = {
     drawConnections: function(planets) {
         var game = this;
         var connections = game.assets.map.connections;
-        game.ctx2.beginPath();
+        game.screen.mg.beginPath();
         for(connection in connections) {
 
-            var originX = game.assets.map.x + connections[connection]["originX"]*game.assets.map.oneLightYear+game.screen.z;
-            var originY = game.assets.map.y + connections[connection]["originY"]*game.assets.map.oneLightYear+game.screen.z;
-            var destX = game.assets.map.x + connections[connection]["destX"]*game.assets.map.oneLightYear+game.screen.z;
-            var destY = game.assets.map.y + connections[connection]["destY"]*game.assets.map.oneLightYear+game.screen.z;
+            var originX = game.assets.map.x + connections[connection]["originX"];
+            var originY = game.assets.map.y + connections[connection]["originY"];
+            var destX = game.assets.map.x + connections[connection]["destX"];
+            var destY = game.assets.map.y + connections[connection]["destY"];
             originX = Math.round(originX);
             originY = Math.round(originY);
             destX = Math.round(destX);
@@ -275,21 +305,21 @@ Game.prototype = {
 
 
             if((game.screen.utils.pointIsOnScreen(game,originX,originY))||(game.screen.utils.pointIsOnScreen(game,destX,destY))) {    
-                game.ctx2.strokeStyle = "#fff";
-                game.ctx2.lineWidth = .2;
+                game.screen.mg.strokeStyle = "#fff";
+                game.screen.mg.lineWidth = .2;
                
-                game.ctx2.moveTo(originX, originY);
-                game.ctx2.lineTo(destX, destY);
+                game.screen.mg.moveTo(originX, originY);
+                game.screen.mg.lineTo(destX, destY);
             }
         }
-        game.ctx2.stroke();
+        game.screen.mg.stroke();
     },
     drawPlanets: function(planets) {
         var game = this;
         for(var i=0; i < planets.length; i++) {
         
-            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear+game.screen.z;;
-            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear+game.screen.z;
+            var planetX = game.assets.map.x + planets[i].XCoordinate;;
+            var planetY = game.assets.map.y + planets[i].YCoordinate;
             
             planetX = Math.round(planetX);
             planetY = Math.round(planetY);
@@ -305,23 +335,24 @@ Game.prototype = {
                 if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
                 if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
                 if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
-                if(game.screen.z < 1.5) planetImage = game.assets.images["uknown"];
 
-                game.ctx2.globalAlpha  = settings.alpha;    
-                game.ctx2.drawImage(planetImage, planetX-((game.assets.map.w/(150))/2), planetY-((game.assets.map.w/(150))/2), game.assets.map.w/(150), game.assets.map.w/(150));
-                game.ctx2.globalAlpha  = 1; 
+                game.screen.mg.globalAlpha  = settings.alpha;    
+                game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(50))/2), planetY-((game.assets.map.w/(50))/2), game.assets.map.w/(50), game.assets.map.w/(50));
+                game.screen.mg.globalAlpha  = 1; 
             }
         }
     },
     drawForgrownd: function() {
         var game = this;
+
+        game.screen.fgCanvas.width = game.screen.fgCanvas.width;
+
         var image = game.assets.images["Fog nebula"];
         var settings = image.settings;
 
-
-        game.ctx.globalAlpha  = settings.alpha;    
-        game.ctx.drawImage(image, game.bg.x, game.bg.y, game.canvas.width*settings.size, window.innerHeight*settings.size);
-        game.ctx.globalAlpha  = 1; 
+        game.screen.fg.globalAlpha  = settings.alpha;    
+        game.screen.fg.drawImage(image, game.screen.x, game.screen.y, window.innerWidth*settings.size, window.innerHeight*settings.size);
+        game.screen.fg.globalAlpha  = 1; 
         
     },
     drawGUI: function() {
@@ -337,7 +368,7 @@ Game.prototype = {
     screen: {
             animate: function() {
                 window.requestAnimationFrame(game.screen.animate());
-                game.draw(game.screen.x, game.screen.y, game.screen.z);
+                game.draw(game.screen.x, game.screen.Y);
             },
             move: function(game, direction) {
 
@@ -347,7 +378,7 @@ Game.prototype = {
                         if(direction === "right") game.screen.x -= .5;
                         if(direction === "up") game.screen.y += .5;
                         if(direction === "down") game.screen.y -= .5;
-                    }, 25/game.screen.z)
+                    }, 25)
                 }
                 
                 if(((direction === "stop")&&(typeof(moveScreen)!='undefined'))||(!game.screen.utils.canMove(game))) {
@@ -356,58 +387,18 @@ Game.prototype = {
                 }
             },
             zoom: function(game, clientX, clientY, delta) {
-                //get the cursors absolute screen position over the canvas
-                //NOTE this will not work as it is written unless the canvas is in the top left corner of the screen
-                var mouseXOnScreen = clientX;
-                var mouseYOnScreen = clientY;
 
-                //this calculates the position of the mouse over the drawn object on the screen
-                var mouseXOnImg = mouseXOnScreen-game.assets.map.x;
-                var mouseYOnImg = mouseYOnScreen-game.assets.map.y;
-
-                //this calculated the cursors offset over the image as a % of the total images size
-                var oldMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
-                var oldMouseYPosPercentOfImg = mouseYOnImg/(game.canvas.height*game.screen.z);
-
-                /*
-                    z is a result of delta squared so that it willl zoom faster the harder you scroll the wheel,
-                    one of the deltas is held at an absolut value so that the product will be positive or negative
-                    depending on the direction of the wheel's spin, finally z is reduced by a factor of z/n so that
-                    zooming will occure more and more quickly as the zoom increases.
-                */
-                game.screen.z += Math.abs(delta)*delta*(game.screen.z/150000);
-                //this places a min/max zoom in/out level
-                game.screen.z < 1 ? game.screen.z = 1: game.screen.z=game.screen.z;
-                game.screen.z > 25 ? game.screen.z = 25: game.screen.z=game.screen.z;
-
-                //this recalculates the cursors position as a % of the total images size at the new level of zoom
-                 var newMouseXPosPercentOfImg = mouseXOnImg/(game.canvas.height*game.screen.z);
-                 var newMouseYPosPercentOfImg = mouseYOnImg/(game.canvas.height*game.screen.z);
-
-                //this calculates the difference in the % of the total images size both before and after the zoom
-                var percentXShift = newMouseXPosPercentOfImg - oldMouseXPosPercentOfImg;
-                var percentYShift = newMouseYPosPercentOfImg - oldMouseYPosPercentOfImg;
-     
-                // this converts the % into the the relative pixel distance at this level of zoom
-                var pixelsNowEqualToPercentXShift = (game.assets.map.x*game.screen.z)*percentXShift;
-                var pixelsNowEqualToPercentYShift = (game.assets.map.y*game.screen.z)*percentYShift;
-
-                console.log(percentXShift);
-
-                //this shifts x and y by the number of pixels represented by the shift in the cursors position relative tot eh image.
-                game.assets.map.x += pixelsNowEqualToPercentXShift;
-                game.assets.map.y += pixelsNowEqualToPercentYShift;
 
             },
             utils: {
                 pointIsOnScreen: function(game,x,y) {
-                    return (x>0)&&(x<game.canvas.width)&&(y>0)&&(y<game.canvas.height);
+                    return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
                 },
                 rectIsOnScreen: function(game,x,y,w,h) {
-                    return ((x+w)>0)&&(x<game.canvas.width)&&((y+h)>0)&&(y<game.canvas.height);
+                    return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
                 },
                 circIsOnScreen: function(game,x,y,r) {
-                    return ((x+r)>0)&&(x<game.canvas.width)&&((y+r)>0)&&(y<game.canvas.height);
+                    return ((x+r)>0)&&(x<game.screen.bgCanvas.width)&&((y+r)>0)&&(y<game.screen.bgCanvas.height);
                 },
                 canMove: function(game) {
                     if(game.screen.utils.mapIsContainedOnScreen(game)) {
@@ -416,15 +407,15 @@ Game.prototype = {
                     return false;
                 },
                 mapIsContainedOnScreen: function(game) {
-                    return true//((game.assets.map.y + game.assets.map.h)<game.canvas.height)&&((game.assets.map.x + game.assets.map.w)<game.canvas.width) ;
+                    return true//((game.assets.map.y + game.assets.map.h)<game.screen.bgCanvas.height)&&((game.assets.map.x + game.assets.map.w)<game.screen.bgCanvas.width) ;
                 }
             },
             effects: {
                 fade: function(game,x,y) {
-                    return (x>0)&&(x<game.canvas.width)&&(y>0)&&(y<game.canvas.height);
+                    return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
                 },
                 twinkle: function(game,x,y,w,h) {
-                    return ((x+w)>0)&&(x<game.canvas.width)&&((y+h)>0)&&(y<game.canvas.height);
+                    return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
                 }
             }
         }
