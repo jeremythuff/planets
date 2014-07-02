@@ -1,7 +1,7 @@
 [
     {
         "name": "starfield one",
-        "src": "img/bg.layer.1.jpg",
+        "src": "img/bg.layer.1.png",
         "group": "background",
         "settings": {
             "layer": "0",
