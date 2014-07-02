@@ -19,7 +19,7 @@ planets.listen("mousemove", function(evt) {
 });
 
 planets.listen('mousewheel', function(evt) {
-   planets.screen.zoom(planets, evt.clientX, evt.clientY, evt.wheelDelta);
+   planets.screen.zoom(planets, evt);
 });
 
 planets.init();
