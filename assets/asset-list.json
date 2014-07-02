@@ -1,7 +1,7 @@
 [
     {
         "name": "starfield one",
-        "src": "img/bg.layer.1.png",
+        "src": "img/starfield.jpg",
         "group": "background",
         "settings": {
             "layer": "0",
@@ -25,7 +25,7 @@
     },
     {
         "name": "starfield two",
-        "src": "img/bg.layer.1.jpg",
+        "src": "img/starfield.jpg",
         "group": "background",
         "settings": {
             "layer": "2.15",
