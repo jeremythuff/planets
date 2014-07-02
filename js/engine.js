@@ -275,10 +275,10 @@ Game.prototype = {
         y = Math.round(y);
 
 
-        game.assets.map.w = game.screen.mgCanvas.height/2;
+        game.assets.map.w = (game.screen.mgCanvas.height)-(game.screen.mgCanvas.height*.1);
         game.assets.map.h = game.assets.map.w;
-        game.assets.map.x = Math.round(x);
-        game.assets.map.y = Math.round(y);
+        game.assets.map.x = ((Math.round(x)+game.screen.mgCanvas.width)/2)-(game.assets.map.w/2);
+        game.assets.map.y = ((Math.round(y)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
         
 
@@ -294,10 +294,10 @@ Game.prototype = {
         game.screen.mg.beginPath();
         for(connection in connections) {
 
-            var originX = game.assets.map.x + connections[connection]["originX"];
-            var originY = game.assets.map.y + connections[connection]["originY"];
-            var destX = game.assets.map.x + connections[connection]["destX"];
-            var destY = game.assets.map.y + connections[connection]["destY"];
+            var originX = game.assets.map.x + connections[connection]["originX"]*game.assets.map.oneLightYear;
+            var originY = game.assets.map.y + connections[connection]["originY"]*game.assets.map.oneLightYear;
+            var destX = game.assets.map.x + connections[connection]["destX"]*game.assets.map.oneLightYear;
+            var destY = game.assets.map.y + connections[connection]["destY"]*game.assets.map.oneLightYear;
             originX = Math.round(originX);
             originY = Math.round(originY);
             destX = Math.round(destX);
@@ -318,8 +318,8 @@ Game.prototype = {
         var game = this;
         for(var i=0; i < planets.length; i++) {
         
-            var planetX = game.assets.map.x + planets[i].XCoordinate;;
-            var planetY = game.assets.map.y + planets[i].YCoordinate;
+            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
+            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear;
             
             planetX = Math.round(planetX);
             planetY = Math.round(planetY);
@@ -337,7 +337,7 @@ Game.prototype = {
                 if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
 
                 game.screen.mg.globalAlpha  = settings.alpha;    
-                game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(50))/2), planetY-((game.assets.map.w/(50))/2), game.assets.map.w/(50), game.assets.map.w/(50));
+                game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
                 game.screen.mg.globalAlpha  = 1; 
             }
         }
