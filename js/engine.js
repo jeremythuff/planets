@@ -30,7 +30,8 @@ var Game = function(name) {
     
     this.assets= {
         images: {},
-        map: {}
+        map: {},
+        bg: {}
     };
 
     this.screen.x = 0;
@@ -232,7 +233,7 @@ Game.prototype = {
     draw: function(x,y) {
         var game = this;
         
-        //game.drawBG(x,y);
+        game.drawBG(x,y);
         game.drawMap(x,y);
         game.drawForgrownd(x,y);
 
@@ -254,12 +255,12 @@ Game.prototype = {
             var src = game.assets.images[asset].src;
             var group = game.assets.images[asset].group;
             var settings = game.assets.images[asset].settings;
-            game.bg.x = Math.round((x*settings.layer)+(game.screen.bgCanvas.width*settings.originX));
-            game.bg.y = Math.round((y*settings.layer)+(game.screen.bgCanvas.height*settings.originY));
+            game.assets.bg.x = Math.round((x*settings.layer)+(game.screen.bgCanvas.width*settings.originX));
+            game.assets.bg.y = Math.round((y*settings.layer)+(game.screen.bgCanvas.height*settings.originY));
 
             if(group === "background") {
                 game.screen.ctx.globalAlpha  = settings.alpha;    
-                game.screen.ctx.drawImage(game.assets.images[asset], game.bg.x, game.bg.y, game.screen.bgCanvas.width*settings.size, window.innerHeight*settings.size);
+                game.screen.ctx.drawImage(game.assets.images[asset], game.assets.bg.x, game.assets.bg.y, game.screen.bgCanvas.width*settings.size, window.innerHeight*settings.size);
                 game.screen.ctx.globalAlpha  = 1; 
             }
         }  
@@ -277,13 +278,10 @@ Game.prototype = {
 
         game.assets.map.w = (game.screen.mgCanvas.height)-(game.screen.mgCanvas.height*.1);
         game.assets.map.h = game.assets.map.w;
-        game.assets.map.x = ((Math.round(x)+game.screen.mgCanvas.width)/2)-(game.assets.map.w/2);
-        game.assets.map.y = ((Math.round(y)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
+        game.assets.map.x = ((Math.round(x*25)+game.screen.mgCanvas.width)/2)-(game.assets.map.w/2);
+        game.assets.map.y = ((Math.round(y*25)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
         
-
-        console.log(game.screen.mgCanvas.height); 
-
         game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
