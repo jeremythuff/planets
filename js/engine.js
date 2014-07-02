@@ -27,15 +27,24 @@ var Game = function(name) {
     this.screen.gui = this.screen.guiCanvas.getContext('2d');
     this.screen.offScreenCanvas = document.createElement('canvas');
     this.screen.offScreen = this.screen.offScreenCanvas.getContext('2d');  
-    
+
+    this.screen.x = 0;
+    this.screen.y = 0;
+    this.screen.offX = 0;
+    this.screen.offY = 0;
+    this.screen.z = .1;
+    this.screen.delta = false;
+
+    this.input = {
+        "drag": false
+    };
+
     this.assets= {
         images: {},
         map: {},
         bg: {}
     };
-
-    this.screen.x = 0;
-    this.screen.y = 0;
+    
     return this;
 }
 
@@ -282,7 +291,13 @@ Game.prototype = {
         game.assets.map.x = ((Math.round(x*25)+game.screen.mgCanvas.width)/2)-(game.assets.map.w/2);
         game.assets.map.y = ((Math.round(y*25)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
-        
+
+        var pt = game.screen.mg.transformedPoint(game.screen.offX,game.screen.offY);
+        game.screen.mg.translate(pt.x,pt.y);
+        var factor = Math.pow(1.1,game.screen.delta);
+        game.screen.mg.scale(factor,factor);
+        game.screen.mg.translate(-pt.x,-pt.y);
+        console.log(factor);
         game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
@@ -335,9 +350,11 @@ Game.prototype = {
                 if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
                 if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
 
+
                 game.screen.mg.globalAlpha  = settings.alpha;    
                 game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
                 game.screen.mg.globalAlpha  = 1; 
+            
             }
         }
     },
@@ -384,17 +401,6 @@ Game.prototype = {
                     clearInterval(moveScreen);
                     moveScreen = false;
                 }
-            },
-            zoom: function(game, evt){
-                var delta = evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
-                if (delta) {
-                    var pt = game.screen.mg.transformedPoint(evt.clientX,evt.clientY);
-                    game.screen.mg.translate(pt.x,pt.y);
-                    var factor = Math.pow(1.1,delta);
-                    game.screen.mg.scale(factor,factor);
-                    game.screen.mg.translate(-pt.x,-pt.y);
-                }
-                return evt.preventDefault() && false;
             },
             utils: {
                 pointIsOnScreen: function(game,x,y) {

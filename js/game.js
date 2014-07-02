@@ -19,7 +19,30 @@ planets.listen("mousemove", function(evt) {
 });
 
 planets.listen('mousewheel', function(evt) {
-   planets.screen.zoom(planets, evt);
+    planets.screen.delta += evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
+    return evt.preventDefault() && false;
+});
+
+planets.listen('mousedown', function(evt) {
+    planets.input.drag = true;
+    return evt.preventDefault() && false;
+});
+
+planets.listen('mouseup', function(evt) {
+    planets.input.drag = false;
+    return evt.preventDefault() && false;
+});
+
+planets.listen('mousemove', function(evt) {
+   planets.screen.offX = evt.offsetX || (evt.pageX - planets.screen.mg.offsetLeft);
+   planets.screen.offY = evt.offsetY || (evt.pageY - planets.screen.mg.offsetRight);
+   
+   if(planets.input.drag) {
+        planets.screen.x = evt.clientX;
+        planets.screen.y = evt.clientY;
+   }
+
+   console.log(("x: " + planets.screen.offX) + "  " + ("y: " + planets.screen.offY));
 });
 
 planets.init();
