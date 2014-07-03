@@ -30,7 +30,7 @@ var Game = function(name) {
 
     this.screen.x = 0;
     this.screen.y = 0;
-    this.screen.z = .1;
+    this.screen.z = .01;
     this.screen.delta = false;
 
     this.input = {
@@ -319,17 +319,17 @@ Game.prototype = {
         game.assets.map.oneLightYear = game.assets.map.w/2000;
 
         if(game.screen.delta) {
+            
             var pt = game.screen.mg.transformedPoint(game.input.mouse.offset.x,game.input.mouse.offset.y);
             game.screen.mg.translate(pt.x,pt.y);
             var factor = Math.pow(1.005,game.screen.delta);
             game.screen.mg.scale(factor,factor);
-            game.screen.mg.translate(-pt.x,-pt.y);
-            console.log("offset.x: "+game.input.mouse.offset.x+", pt.x:"+pt.x);
+            game.screen.mg.translate(-pt.x,-pt.y);            
             
             setTimeout(function() {
                 game.screen.delta = false;
-            }, 250);
-        
+            }, 500);
+     
         }
 
         game.drawConnections(game.assets.map.planets);

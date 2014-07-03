@@ -20,6 +20,7 @@ planets.listen("mousemove", function(evt) {
 
 planets.listen('mousewheel', function(evt) {
     planets.screen.delta += evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
+    planets.screen.z = planets.screen.mg.getTransform().a/100;
     return evt.preventDefault() && false;
 });
 
@@ -49,8 +50,8 @@ planets.listen('mousemove', function(evt) {
     var adjustScreenY = (planets.input.mouse.pos.y-planets.input.drag.start.y)-planets.input.drag.lastOffset.y;
 
     if((planets.input.drag.active)) {
-        planets.screen.x += adjustScreenX/12.55;
-        planets.screen.y += adjustScreenY/12.55;
+        planets.screen.x += (adjustScreenX/12.55);
+        planets.screen.y += (adjustScreenY/12.55);
 
         planets.input.drag.lastOffset = {
             x: planets.input.mouse.pos.x-planets.input.drag.start.x,
