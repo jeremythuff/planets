@@ -30,13 +30,35 @@ var Game = function(name) {
 
     this.screen.x = 0;
     this.screen.y = 0;
-    this.screen.offX = 0;
-    this.screen.offY = 0;
     this.screen.z = .1;
     this.screen.delta = false;
 
     this.input = {
-        "drag": false
+        drag: {
+            active: false,
+            start: {
+                x: 0,
+                y: 0
+            },
+            lastOffset: {
+                x: 0,
+                y:0
+            }
+        },
+        mouse: {
+            click: {
+                x: 0,
+                y: 0
+            },
+            pos: {
+                x: 0,
+                y: 0
+            },
+            offset: {
+                x: 0,
+                y: 0
+            }
+        }
     };
 
     this.assets= {
@@ -78,7 +100,7 @@ Game.prototype = {
         document.body.appendChild(game.screen.mgCanvas);
         game.screen.mgCanvas.width = w;
         game.screen.mgCanvas.height = h;
-        trackTransforms(game.screen.mg);
+        game.screen.utils.trackTransforms(game.screen.mg);
 
         document.body.appendChild(game.screen.fgCanvas);
         game.screen.fgCanvas.width = w;
@@ -280,7 +302,11 @@ Game.prototype = {
 
         var game = this;
 
-        game.screen.mgCanvas.width = game.screen.mgCanvas.width;
+        //game.screen.mgCanvas.width = game.screen.mgCanvas.width;
+
+        var p1 = game.screen.mg.transformedPoint(0,0);
+        var p2 =  game.screen.mg.transformedPoint(game.screen.mgCanvas.width, game.screen.mgCanvas.height);
+        game.screen.mg.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
 
         x = Math.round(x);
         y = Math.round(y);
@@ -292,12 +318,20 @@ Game.prototype = {
         game.assets.map.y = ((Math.round(y*25)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
 
-        var pt = game.screen.mg.transformedPoint(game.screen.offX,game.screen.offY);
-        game.screen.mg.translate(pt.x,pt.y);
-        var factor = Math.pow(1.1,game.screen.delta);
-        game.screen.mg.scale(factor,factor);
-        game.screen.mg.translate(-pt.x,-pt.y);
-        console.log(factor);
+        if(game.screen.delta) {
+            var pt = game.screen.mg.transformedPoint(game.input.mouse.offset.x,game.input.mouse.offset.y);
+            game.screen.mg.translate(pt.x,pt.y);
+            var factor = Math.pow(1.005,game.screen.delta);
+            game.screen.mg.scale(factor,factor);
+            game.screen.mg.translate(-pt.x,-pt.y);
+            console.log("offset.x: "+game.input.mouse.offset.x+", pt.x:"+pt.x);
+            
+            setTimeout(function() {
+                game.screen.delta = false;
+            }, 250);
+        
+        }
+
         game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
@@ -318,13 +352,12 @@ Game.prototype = {
             destY = Math.round(destY);
 
 
-            if((game.screen.utils.pointIsOnScreen(game,originX,originY))||(game.screen.utils.pointIsOnScreen(game,destX,destY))) {    
-                game.screen.mg.strokeStyle = "#fff";
-                game.screen.mg.lineWidth = .2;
-               
-                game.screen.mg.moveTo(originX, originY);
-                game.screen.mg.lineTo(destX, destY);
-            }
+            game.screen.mg.strokeStyle = "#fff";
+            game.screen.mg.lineWidth = .2;
+           
+            game.screen.mg.moveTo(originX, originY);
+            game.screen.mg.lineTo(destX, destY);
+            
         }
         game.screen.mg.stroke();
     },
@@ -338,24 +371,22 @@ Game.prototype = {
             planetX = Math.round(planetX);
             planetY = Math.round(planetY);
 
-            if(game.screen.utils.pointIsOnScreen(game,planetX,planetY)) {    
-                var planetName = planets[i].name;
-                var planetTemp = parseInt(planets[i].temp);
-                var planetImage = game.assets.images["uknown"];
-                var settings = planetImage.settings;
-                var planetColor = "#efefef"
-                if((planetTemp >= 0)&&(planetTemp <=14)) planetImage = game.assets.images["ice"];
-                if((planetTemp >= 15)&&(planetTemp <=35)) planetImage = game.assets.images["cold"];
-                if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
-                if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
-                if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
+            var planetName = planets[i].name;
+            var planetTemp = parseInt(planets[i].temp);
+            var planetImage = game.assets.images["uknown"];
+            var settings = planetImage.settings;
+            var planetColor = "#efefef"
+            if((planetTemp >= 0)&&(planetTemp <=14)) planetImage = game.assets.images["ice"];
+            if((planetTemp >= 15)&&(planetTemp <=35)) planetImage = game.assets.images["cold"];
+            if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
+            if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
+            if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
 
 
-                game.screen.mg.globalAlpha  = settings.alpha;    
-                game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
-                game.screen.mg.globalAlpha  = 1; 
-            
-            }
+            game.screen.mg.globalAlpha  = settings.alpha;    
+            game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
+            game.screen.mg.globalAlpha  = 1; 
+        
         }
     },
     drawForgrownd: function() {
@@ -382,110 +413,109 @@ Game.prototype = {
 
     },
     screen: {
-            animate: function() {
-                window.requestAnimationFrame(game.screen.animate());
-                game.draw(game.screen.x, game.screen.Y);
-            },
-            move: function(game, direction) {
+        animate: function() {
+            window.requestAnimationFrame(game.screen.animate());
+            game.draw(game.screen.x, game.screen.Y);
+        },
+        move: function(game, direction) {
 
-                if((typeof(moveScreen) ==='undefined')||(moveScreen === false)) {
-                    moveScreen = setInterval(function() {
-                        if(direction === "left") game.screen.x += .5;
-                        if(direction === "right") game.screen.x -= .5;
-                        if(direction === "up") game.screen.y += .5;
-                        if(direction === "down") game.screen.y -= .5;
-                    }, 25)
+            if((typeof(moveScreen) ==='undefined')||(moveScreen === false)) {
+                moveScreen = setInterval(function() {
+                    if(direction === "left") game.screen.x += .5;
+                    if(direction === "right") game.screen.x -= .5;
+                    if(direction === "up") game.screen.y += .5;
+                    if(direction === "down") game.screen.y -= .5;
+                }, 25)
+            }
+            
+            if(((direction === "stop")&&(typeof(moveScreen)!='undefined'))||(!game.screen.utils.canMove(game))) {
+                clearInterval(moveScreen);
+                moveScreen = false;
+            }
+        },
+        utils: {
+            pointIsOnScreen: function(game,x,y) {
+                return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
+            },
+            rectIsOnScreen: function(game,x,y,w,h) {
+                return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
+            },
+            circIsOnScreen: function(game,x,y,r) {
+                return ((x+r)>0)&&(x<game.screen.bgCanvas.width)&&((y+r)>0)&&(y<game.screen.bgCanvas.height);
+            },
+            canMove: function(game) {
+                if(game.screen.utils.mapIsContainedOnScreen(game)) {
+                    return true;
                 }
+                return false;
+            },
+            mapIsContainedOnScreen: function(game) {
+                return true//((game.assets.map.y + game.assets.map.h)<game.screen.bgCanvas.height)&&((game.assets.map.x + game.assets.map.w)<game.screen.bgCanvas.width) ;
+            },
+            trackTransforms: function(ctx){
+                var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
+                var xform = svg.createSVGMatrix();
+                ctx.getTransform = function(){ return xform; };
                 
-                if(((direction === "stop")&&(typeof(moveScreen)!='undefined'))||(!game.screen.utils.canMove(game))) {
-                    clearInterval(moveScreen);
-                    moveScreen = false;
-                }
-            },
-            utils: {
-                pointIsOnScreen: function(game,x,y) {
-                    return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
-                },
-                rectIsOnScreen: function(game,x,y,w,h) {
-                    return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
-                },
-                circIsOnScreen: function(game,x,y,r) {
-                    return ((x+r)>0)&&(x<game.screen.bgCanvas.width)&&((y+r)>0)&&(y<game.screen.bgCanvas.height);
-                },
-                canMove: function(game) {
-                    if(game.screen.utils.mapIsContainedOnScreen(game)) {
-                        return true;
-                    }
-                    return false;
-                },
-                mapIsContainedOnScreen: function(game) {
-                    return true//((game.assets.map.y + game.assets.map.h)<game.screen.bgCanvas.height)&&((game.assets.map.x + game.assets.map.w)<game.screen.bgCanvas.width) ;
-                }
-            },
-            effects: {
-                fade: function(game,x,y) {
-                    return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
-                },
-                twinkle: function(game,x,y,w,h) {
-                    return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
+                var savedTransforms = [];
+                var save = ctx.save;
+                ctx.save = function(){
+                    savedTransforms.push(xform.translate(0,0));
+                    return save.call(ctx);
+                };
+                var restore = ctx.restore;
+                ctx.restore = function(){
+                    xform = savedTransforms.pop();
+                    return restore.call(ctx);
+                };
+
+                var scale = ctx.scale;
+                ctx.scale = function(sx,sy){
+                    xform = xform.scaleNonUniform(sx,sy);
+                    return scale.call(ctx,sx,sy);
+                };
+                var rotate = ctx.rotate;
+                ctx.rotate = function(radians){
+                    xform = xform.rotate(radians*180/Math.PI);
+                    return rotate.call(ctx,radians);
+                };
+                var translate = ctx.translate;
+                ctx.translate = function(dx,dy){
+                    xform = xform.translate(dx,dy);
+                    return translate.call(ctx,dx,dy);
+                };
+                var transform = ctx.transform;
+                ctx.transform = function(a,b,c,d,e,f){
+                    var m2 = svg.createSVGMatrix();
+                    m2.a=a; m2.b=b; m2.c=c; m2.d=d; m2.e=e; m2.f=f;
+                    xform = xform.multiply(m2);
+                    return transform.call(ctx,a,b,c,d,e,f);
+                };
+                var setTransform = ctx.setTransform;
+                ctx.setTransform = function(a,b,c,d,e,f){
+                    xform.a = a;
+                    xform.b = b;
+                    xform.c = c;
+                    xform.d = d;
+                    xform.e = e;
+                    xform.f = f;
+                    return setTransform.call(ctx,a,b,c,d,e,f);
+                };
+                var pt  = svg.createSVGPoint();
+                ctx.transformedPoint = function(x,y){
+                    pt.x=x; pt.y=y;
+                    return pt.matrixTransform(xform.inverse());
                 }
             }
+        },
+        effects: {
+            fade: function(game,x,y) {
+                return (x>0)&&(x<game.screen.bgCanvas.width)&&(y>0)&&(y<game.screen.bgCanvas.height);
+            },
+            twinkle: function(game,x,y,w,h) {
+                return ((x+w)>0)&&(x<game.screen.bgCanvas.width)&&((y+h)>0)&&(y<game.screen.bgCanvas.height);
+            }
         }
-
-}
-
-function trackTransforms(ctx){
-    var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
-    var xform = svg.createSVGMatrix();
-    ctx.getTransform = function(){ return xform; };
-    
-    var savedTransforms = [];
-    var save = ctx.save;
-    ctx.save = function(){
-        savedTransforms.push(xform.translate(0,0));
-        return save.call(ctx);
-    };
-    var restore = ctx.restore;
-    ctx.restore = function(){
-        xform = savedTransforms.pop();
-        return restore.call(ctx);
-    };
-
-    var scale = ctx.scale;
-    ctx.scale = function(sx,sy){
-        xform = xform.scaleNonUniform(sx,sy);
-        return scale.call(ctx,sx,sy);
-    };
-    var rotate = ctx.rotate;
-    ctx.rotate = function(radians){
-        xform = xform.rotate(radians*180/Math.PI);
-        return rotate.call(ctx,radians);
-    };
-    var translate = ctx.translate;
-    ctx.translate = function(dx,dy){
-        xform = xform.translate(dx,dy);
-        return translate.call(ctx,dx,dy);
-    };
-    var transform = ctx.transform;
-    ctx.transform = function(a,b,c,d,e,f){
-        var m2 = svg.createSVGMatrix();
-        m2.a=a; m2.b=b; m2.c=c; m2.d=d; m2.e=e; m2.f=f;
-        xform = xform.multiply(m2);
-        return transform.call(ctx,a,b,c,d,e,f);
-    };
-    var setTransform = ctx.setTransform;
-    ctx.setTransform = function(a,b,c,d,e,f){
-        xform.a = a;
-        xform.b = b;
-        xform.c = c;
-        xform.d = d;
-        xform.e = e;
-        xform.f = f;
-        return setTransform.call(ctx,a,b,c,d,e,f);
-    };
-    var pt  = svg.createSVGPoint();
-    ctx.transformedPoint = function(x,y){
-        pt.x=x; pt.y=y;
-        return pt.matrixTransform(xform.inverse());
     }
+
 }
