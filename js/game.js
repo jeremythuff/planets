@@ -20,7 +20,7 @@ planets.listen("mousemove", function(evt) {
 
 planets.listen('mousewheel', function(evt) {
     planets.screen.delta += evt.wheelDelta ? evt.wheelDelta/40 : evt.detail ? -evt.detail : 0;
-    planets.screen.z = planets.screen.mg.getTransform().a/100;
+    planets.screen.z = ((planets.screen.mg.getTransform().a/100).toFixed(2));
     return evt.preventDefault() && false;
 });
 
@@ -40,11 +40,35 @@ planets.listen('mouseup', function(evt) {
     return evt.preventDefault() && false;
 });
 
+planets.listen('dblclick', function(evt) {
+    
+
+    for(planet in planets.assets.map.planets) {
+        var x = evt.clientX - planets.assets.map.planets[planet].XCoordinate;
+        var y = evt.clientY - planets.assets.map.planets[planet].YCoordinate;
+        var dist = Math.sqrt(y*y + x*x);
+
+
+        console.log(dist)
+        console.log(planets.assets.map.planets[planet].YCoordinate-((planets.assets.map.w/(100))/2));
+
+        if(dist < planets.assets.map.w/(100)) {
+            console.log(planets.assets.map.planets.name);
+        }
+
+    }
+        
+});
+
+
+
+
 planets.listen('mousemove', function(evt) {
     planets.input.mouse.offset.x = evt.offsetX || (evt.pageX - planets.screen.mg.offsetLeft);
     planets.input.mouse.offset.y = evt.offsetY || (evt.pageY - planets.screen.mg.offsetTop);
     planets.input.mouse.pos.x = evt.clientX;
     planets.input.mouse.pos.y = evt.clientY;
+    
 
     var adjustScreenX = (planets.input.mouse.pos.x-planets.input.drag.start.x)-planets.input.drag.lastOffset.x;
     var adjustScreenY = (planets.input.mouse.pos.y-planets.input.drag.start.y)-planets.input.drag.lastOffset.y;

@@ -117,19 +117,6 @@ Game.prototype = {
         game.loadAssets(function() {
             (function animloop(){
                 window.requestAnimFrame(animloop);
-              
-                if(!lastCalledTime) {
-                    lastCalledTime = new Date().getTime();
-                    fps = 0;
-                    return;
-                }
-                
-                delta = (new Date().getTime() - lastCalledTime)/1000;
-                lastCalledTime = new Date().getTime();
-                fps = 1/delta;
-
-                if(fpsCounter++ % (Math.round(fps / 10)*10) === 0)fpsOut.innerHTML = "<span style='color:orange'>fps: "+Math.round(fps, 2)+"</span>";
-
                 game.draw(game.screen.x, game.screen.y);
             })();	
         });
@@ -268,6 +255,7 @@ Game.prototype = {
         game.drawBG(x,y);
         game.drawMap(x,y);
         game.drawForgrownd(x,y);
+        game.drawGUI();
 
     },
     clearScreen: function() {
@@ -317,6 +305,9 @@ Game.prototype = {
         game.assets.map.x = ((Math.round(x*25)+game.screen.mgCanvas.width)/2)-(game.assets.map.w/2);
         game.assets.map.y = ((Math.round(y*25)+game.screen.mgCanvas.height)/2)-(game.assets.map.h/2);
         game.assets.map.oneLightYear = game.assets.map.w/2000;
+        
+        // var time = 1000*Math.abs(game.screen.delta);
+        // console.log(time);
 
         if(game.screen.delta) {
             
@@ -328,6 +319,7 @@ Game.prototype = {
             
             setTimeout(function() {
                 game.screen.delta = false;
+                game.screen.z = ((planets.screen.mg.getTransform().a/100).toFixed(2));
             }, 500);
      
         }
@@ -381,6 +373,7 @@ Game.prototype = {
             if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
             if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
             if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
+            if(game.screen.z<.02) planetImage = game.assets.images["uknown"];
 
 
             game.screen.mg.globalAlpha  = settings.alpha;    
@@ -403,6 +396,16 @@ Game.prototype = {
         
     },
     drawGUI: function() {
+        var game = this;
+
+        game.screen.guiCanvas.width = game.screen.guiCanvas.width;
+
+        game.screen.gui.fillStyle = '#333';
+        game.screen.gui.globalAlpha=0.9;
+        game.screen.gui.fillRect(0,0,game.screen.fgCanvas.width*.18, game.screen.fgCanvas.height);
+        game.screen.gui.globalAlpha=1;
+
+        
         
     },
     listen: function(listener, cb) {
