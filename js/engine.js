@@ -32,6 +32,7 @@ var Game = function(name) {
     this.screen.y = 0;
     this.screen.z = .01;
     this.screen.delta = false;
+    this.screen.factor = 1;
 
     this.input = {
         drag: {
@@ -313,8 +314,8 @@ Game.prototype = {
             
             var pt = game.screen.mg.transformedPoint(game.input.mouse.offset.x,game.input.mouse.offset.y);
             game.screen.mg.translate(pt.x,pt.y);
-            var factor = Math.pow(1.005,game.screen.delta);
-            game.screen.mg.scale(factor,factor);
+            game.screen.factor = Math.pow(1.005,game.screen.delta);
+            game.screen.mg.scale(game.screen.factor,game.screen.factor);
             game.screen.mg.translate(-pt.x,-pt.y);            
             
             setTimeout(function() {
