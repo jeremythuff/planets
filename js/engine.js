@@ -28,6 +28,8 @@ var Game = function(name) {
     this.screen.offScreenCanvas = document.createElement('canvas');
     this.screen.offScreen = this.screen.offScreenCanvas.getContext('2d');  
 
+    this.screen.gui.selected = false;
+
     this.screen.x = 0;
     this.screen.y = 0;
     this.screen.z = .01;
@@ -398,16 +400,33 @@ Game.prototype = {
     },
     drawGUI: function() {
         var game = this;
+        
 
         game.screen.guiCanvas.width = game.screen.guiCanvas.width;
 
-        game.screen.gui.fillStyle = '#333';
-        game.screen.gui.globalAlpha=0.9;
-        game.screen.gui.fillRect(0,0,game.screen.fgCanvas.width*.18, game.screen.fgCanvas.height);
-        game.screen.gui.globalAlpha=1;
 
         
+        game.leftPanel();        
         
+    },
+    leftPanel: function() {
+        var game = this;
+        var selected = game.screen.gui.selected;
+        var boxWidth = game.screen.fgCanvas.width*.18;
+        var boxHeight = game.screen.fgCanvas.height;
+
+        game.screen.gui.fillStyle = '#333';
+        game.screen.gui.globalAlpha=0.9;
+        game.screen.gui.fillRect(0,0,boxWidth, boxHeight);
+        game.screen.gui.globalAlpha=1;
+
+        if(selected != false) {
+            game.screen.gui.fillStyle = '#efefef';
+            game.screen.gui.font = 'italic bold 30px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(selected, 200, 200);
+        }
+
     },
     listen: function(listener, cb) {
     	

@@ -74,11 +74,11 @@ planets.listen('dblclick', function(evt) {
         var y = evt.clientY - planetScaled.y;
         var dist = Math.sqrt(y*y + x*x);
         
+
+        
+
         if(dist < pw) {
-          console.debug("***********************************");
-          console.debug("Selected: "+allPlanets[planet].name);
-          console.debug("***********************************");
-          selectedCounter++;
+          planets.screen.gui.selected = allPlanets[planet].name;
         }
 
     }
