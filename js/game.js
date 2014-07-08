@@ -59,28 +59,53 @@ planets.listen('mouseup', function(evt) {
 planets.listen('dblclick', function(evt) {
     
     var allPlanets = planets.assets.map.planets;
-    var i = 0;
-    var factor = planets.screen.factor;
 
     for(planet in allPlanets) {
-        var x = evt.clientX - (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
-        var y = evt.clientY - (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
-        var dist = Math.sqrt(y*y + x*x);
+        var clickX = evt.clientX;
+        var clickY = evt.clientY;
+        var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
+        var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
 
-        var x2 = evt.clientX - (planets.assets.map.x + ((allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear)*factor));
-        var y2 = evt.clientY - (planets.assets.map.y + ((allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear)*factor));
-        var dist2 = Math.sqrt(x2*x2 + y2*y2);
+        var click = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), clickX, clickY);
+        var p = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);
+        var factor = planets.screen.mg.getTransform()['a'];
 
-        if(i===0) {
-          console.log(dist);
-          console.log(dist2);
+        var x = click.x - p.x;
+        var y = click.y - p.y;
+        var dist = (Math.sqrt(y*y + x*x)*factor);
+
+        var pw = (planets.assets.map.w/(100)/factor);
+
+        // var p1 = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), pw, 0); 
+        // var p2 = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), 0, 0); 
+        // var dx = p1.x - p2.x;
+        // var dy = p1.y -p2.y;
+        // var pw = Math.sqrt(dy*dy + dx*dx);
+
+        if(allPlanets[planet].name === "Helion Prime") {
+          console.debug(allPlanets[planet].name);
+          console.log("click x: " + click.x);
+          console.log("click y: " + click.y); 
+          console.log("planet x: " + p.x);
+          console.log("planet y: " + p.y);
+          console.log("distance: " + dist);
+          console.log("width: " + pw); 
         }
-
-
-        if(dist2 < (planets.assets.map.w/(100))) {
-            console.log(allPlanets[planet].name);
+        
+        if(allPlanets[planet].name === "Aebrynis") {
+          console.debug(allPlanets[planet].name);
+          console.log("click x: " + click.x);
+          console.log("click y: " + click.y); 
+          console.log("planet x: " + p.x);
+          console.log("planet y: " + p.y);
+          console.log("distance: " + dist);
+          console.log("width: " + pw); 
         }
-        i++;
+        
+        if(dist < pw) {
+          console.log(planets.screen.mg.getTransform());
+          console.debug(allPlanets[planet].name);
+        }  
     }
         
 });

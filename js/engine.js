@@ -459,6 +459,7 @@ Game.prototype = {
             trackTransforms: function(ctx){
                 var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
                 var xform = svg.createSVGMatrix();
+                ctx['matrix'] = [1,0,0,1,0,0];
                 ctx.getTransform = function(){ return xform; };
                 
                 var savedTransforms = [];
@@ -476,6 +477,10 @@ Game.prototype = {
                 var scale = ctx.scale;
                 ctx.scale = function(sx,sy){
                     xform = xform.scaleNonUniform(sx,sy);
+                    ctx.matrix[0] *= sx;
+                    ctx.matrix[1] *= sx;
+                    ctx.matrix[2] *= sy;
+                    ctx.matrix[3] *= sy; 
                     return scale.call(ctx,sx,sy);
                 };
                 var rotate = ctx.rotate;
@@ -486,6 +491,8 @@ Game.prototype = {
                 var translate = ctx.translate;
                 ctx.translate = function(dx,dy){
                     xform = xform.translate(dx,dy);
+                    ctx.matrix[4] += ctx.matrix[0] * dx + ctx.matrix[2] * dy;
+                    ctx.matrix[5] += ctx.matrix[1] * dx + ctx.matrix[3] * dy;
                     return translate.call(ctx,dx,dy);
                 };
                 var transform = ctx.transform;
@@ -509,6 +516,11 @@ Game.prototype = {
                 ctx.transformedPoint = function(x,y){
                     pt.x=x; pt.y=y;
                     return pt.matrixTransform(xform.inverse());
+                },
+                ctx.getScaledXY = function(matrix,x,y) {
+                    x = x * matrix["a"] + y * matrix["c"] + matrix["e"];
+                    y = x * matrix["b"] + y * matrix["d"] + matrix["f"];
+                    return({x:x,y:y});
                 }
             }
         },
