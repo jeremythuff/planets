@@ -60,54 +60,31 @@ planets.listen('dblclick', function(evt) {
     
     var allPlanets = planets.assets.map.planets;
 
+    var selectedCounter = 0;
+    var factor = planets.screen.mg.getTransform()['a'];
+    var pw = ((planets.assets.map.w)/(100))*(factor);
+
     for(planet in allPlanets) {
-        var clickX = evt.clientX;
-        var clickY = evt.clientY;
+        
         var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
         var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
+        var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
 
-        var click = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), clickX, clickY);
-        var p = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);
-        var factor = planets.screen.mg.getTransform()['a'];
-
-        var x = click.x - p.x;
-        var y = click.y - p.y;
-        var dist = (Math.sqrt(y*y + x*x)*factor);
-
-        var pw = (planets.assets.map.w/(100)/factor);
-
-        // var p1 = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), pw, 0); 
-        // var p2 = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), 0, 0); 
-        // var dx = p1.x - p2.x;
-        // var dy = p1.y -p2.y;
-        // var pw = Math.sqrt(dy*dy + dx*dx);
-
-        if(allPlanets[planet].name === "Helion Prime") {
-          console.debug(allPlanets[planet].name);
-          console.log("click x: " + click.x);
-          console.log("click y: " + click.y); 
-          console.log("planet x: " + p.x);
-          console.log("planet y: " + p.y);
-          console.log("distance: " + dist);
-          console.log("width: " + pw); 
-        }
-        
-        if(allPlanets[planet].name === "Aebrynis") {
-          console.debug(allPlanets[planet].name);
-          console.log("click x: " + click.x);
-          console.log("click y: " + click.y); 
-          console.log("planet x: " + p.x);
-          console.log("planet y: " + p.y);
-          console.log("distance: " + dist);
-          console.log("width: " + pw); 
-        }
+        var x = evt.clientX - planetScaled.x;
+        var y = evt.clientY - planetScaled.y;
+        var dist = Math.sqrt(y*y + x*x);
         
         if(dist < pw) {
-          console.log(planets.screen.mg.getTransform());
-          console.debug(allPlanets[planet].name);
-        }  
+          console.debug("***********************************");
+          console.debug("Selected: "+allPlanets[planet].name);
+          console.debug("***********************************");
+          selectedCounter++;
+        }
+
     }
-        
+
+      console.log("Number Selected: "+selectedCounter);
+
 });
 
 
