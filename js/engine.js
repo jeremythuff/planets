@@ -39,6 +39,7 @@ var Game = function(name) {
     this.input = {
         drag: {
             active: false,
+            init: false,
             start: {
                 x: 0,
                 y: 0
@@ -197,6 +198,7 @@ Game.prototype = {
         game.getResource({
             url: "maps/"+name+".json" 
         }, function(data) {
+
             game.assets.map = data.game;
 
             game.assets.map.connections = [];
@@ -213,9 +215,13 @@ Game.prototype = {
             }
 
 
-            var allConnections = data.connections;
+            var allConnections = {
+                warp: data["connections"],
+                gravatonic: data["gravatonic-connections"],
+                hyp: data["hyp-connections"]
+            }
 
-            for(var originId in allConnections) {
+            for(var originId in allConnections.warp) {
 
                 var originPlanet; 
                 
@@ -226,18 +232,18 @@ Game.prototype = {
                 var originX = originPlanet.XCoordinate
                 var originY = originPlanet.YCoordinate
 
-                for(var i=0;i<allConnections[originId].length;i++) {
+                for(var i=0;i<allConnections.warp[originId].length;i++) {
 
                     var destinationPlanet; 
                 
                     for(var planet in planets) {
-                        if(planets[planet].id == allConnections[originId][i]) destinationPlanet = planets[planet];  
+                        if(planets[planet].id == allConnections.warp[originId][i]) destinationPlanet = planets[planet];  
                     }
                     
-                    var index = allConnections[destinationPlanet.id].indexOf(originPlanet.id);
+                    var index = allConnections.warp[destinationPlanet.id].indexOf(originPlanet.id);
                     
                     if (index > -1) {
-                        allConnections[destinationPlanet.id].splice(index, 1);
+                        allConnections.warp[destinationPlanet.id].splice(index, 1);
                     }
 
                     var destX = destinationPlanet.XCoordinate
@@ -337,9 +343,42 @@ Game.prototype = {
      
         }
 
+        game.drawRings(game.assets.map.planets);
         game.drawConnections(game.assets.map.planets);
         game.drawPlanets(game.assets.map.planets);
 
+    },
+    drawRings: function(planets) {
+        var game = this;
+        var selected = game.screen.gui.selected;
+        for(var i=0; i < planets.length; i++) {
+        
+            var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
+            var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear;
+            
+            planetX = Math.round(planetX);
+            planetY = Math.round(planetY);
+
+            if(planets[i].colonistsPopulation > 0) {
+                
+                game.screen.mg.globalAlpha  = .1;    
+                game.screen.mg.fillStyle = "#3FEBE8";
+                game.screen.mg.beginPath();
+                game.screen.mg.arc(planetX, planetY, (game.assets.map.w/(100))*(planets[i].colonistsPopulation/5000), 0, Math.PI*2, true); 
+                game.screen.mg.closePath();
+                game.screen.mg.fill();
+                game.screen.mg.globalAlpha  = 1; 
+            }
+
+            if(planets[i].name === selected) {   
+                game.screen.mg.fillStyle = "#f90";
+                game.screen.mg.beginPath();
+                game.screen.mg.arc(planetX, planetY, game.assets.map.w/(100)/1.35, 0, Math.PI*2, true); 
+                game.screen.mg.closePath();
+                game.screen.mg.fill();
+                
+            }       
+        }
     },
     drawConnections: function(planets) {
         var game = this;
@@ -385,20 +424,11 @@ Game.prototype = {
             var planetColor = "#efefef"
             if(game.screen.z<.02) planetImage = game.assets.images["uknown"];
 
-            if( planets[i].name === selected) {   
-                game.screen.mg.fillStyle = "#f90";
-                game.screen.mg.beginPath();
-                game.screen.mg.arc(planetX, planetY, game.assets.map.w/(100)/1.35, 0, Math.PI*2, true); 
-                game.screen.mg.closePath();
-                game.screen.mg.fill();
+            if(planets[i].name === selected) {   
                 game.screen.mg.drawImage(planetImage, planetX-(((game.assets.map.w/(100))*1.5)/2), planetY-(((game.assets.map.w/(100))*1.5)/2), (game.assets.map.w/(100))*1.5, (game.assets.map.w/(100))*1.5);
-                
             } else {
                 game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
             }
-
-
-            
         
         }
     },
@@ -541,8 +571,9 @@ Game.prototype = {
             game.screen.gui.textBaseline = 'bottom';
             game.screen.gui.fillText("Population", 10, boxHeight*.80);
 
-            if(selected.natives != "NONE") {
+            if((selected.natives != "NONE")&&(selected.natives != null)) {
                 // natives
+                console.log(selected.natives)
                 var natives = "Natives: " + selected.nativesPopulation +" "+ selected.natives +" ("+selected.nativesGovernment+"), " + selected.nativesHappiness + " & taxed @ " + selected.nativesTaxRate;
                 game.screen.gui.fillStyle = '#f90';
                 game.screen.gui.font = '11px sans-serif';
@@ -561,7 +592,7 @@ Game.prototype = {
 
             if(selected.colonistPopulation > 0) {
                 // colonist
-                var colonist = "Colonist: " + selected.colonistPopulation +" ("+selected.colonistGovernment+"), taxed @ " + selected.colonistsTaxRate;
+                var colonist = "Colonist: " + selected.colonistPopulation +" "+selected.player.raceType+", " + selected.colonistsHappiness + " & taxed @ " + selected.colonistsTaxRate;
                 game.screen.gui.fillStyle = '#f90';
                 game.screen.gui.font = '11px sans-serif';
                 game.screen.gui.textBaseline = 'bottom';

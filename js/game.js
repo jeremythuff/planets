@@ -41,14 +41,49 @@ planets.listen('mousewheel', function(evt) {
 });
 
 planets.listen('mousedown', function(evt) {
-    planets.input.drag.active = true;
+    planets.input.drag.init = true;
+
+    if(!planets.input.drag.active) {
+        if(planets.screen.gui.selected != false) {
+        if((evt.clientX>10)&&(evt.clientX<25)&&(evt.clientY>10)&&(evt.clientY<25)) {
+            planets.screen.gui.selected = false;
+          } 
+        }
+
+        var allPlanets = planets.assets.map.planets;
+
+        var selectedCounter = 0;
+        var factor = planets.screen.mg.getTransform()['a'];
+        var pw = ((planets.assets.map.w)/(100))*(factor);
+
+        for(planet in allPlanets) {
+            
+          var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
+          var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
+          var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
+
+          var x = evt.clientX - planetScaled.x;
+          var y = evt.clientY - planetScaled.y;
+          var dist = Math.sqrt(y*y + x*x);
+
+          if(dist < pw) {
+            planets.screen.gui.selected = allPlanets[planet].name;
+            break;
+          } 
+        }
+    }
+        
+
     planets.input.drag.start.x = evt.clientX;
     planets.input.drag.start.y = evt.clientY;
+    
     return evt.preventDefault() && false;
 });
 
 planets.listen('mouseup', function(evt) {
+    planets.input.drag.init = false; 
     planets.input.drag.active = false;
+    
     planets.input.drag.lastOffset = {
         x: 0,
         y: 0
@@ -57,45 +92,55 @@ planets.listen('mouseup', function(evt) {
 });
 
 planets.listen('dblclick', function(evt) {
-    
-    var allPlanets = planets.assets.map.planets;
 
-    var selectedCounter = 0;
-    var factor = planets.screen.mg.getTransform()['a'];
-    var pw = ((planets.assets.map.w)/(100))*(factor);
+    var x = evt.clientX
 
-    for(planet in allPlanets) {
-        
-      var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
-      var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
-      var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
+    if(planets.screen.gui.selected&&(x>planets.screen.fgCanvas.width*.18)) {
 
-      var x = evt.clientX - planetScaled.x;
-      var y = evt.clientY - planetScaled.y;
-      var dist = Math.sqrt(y*y + x*x);
 
-      if(dist < pw) {
-        planets.screen.gui.selected = allPlanets[planet].name;
-        break;
-      } else {
-        planets.screen.gui.selected = false;
-      }
+        var allPlanets = planets.assets.map.planets;
+
+        var selectedCounter = 0;
+        var factor = planets.screen.mg.getTransform()['a'];
+        var pw = ((planets.assets.map.w)/(100))*(factor);
+
+        for(planet in allPlanets) {
+            
+          var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
+          var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
+          var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
+
+          var x = evt.clientX - planetScaled.x;
+          var y = evt.clientY - planetScaled.y;
+          var dist = Math.sqrt(y*y + x*x);
+
+          if(dist > pw) {
+            planets.screen.gui.selected = false;
+          } else {
+            console.log("got to selected " + allPlanets[planet].name);
+          }
+        }
     }
+    
 });
 
 planets.listen('mousemove', function(evt) {
+
+    if(planets.input.drag.init) {
+        planets.input.drag.active = true;
+    }
+
     planets.input.mouse.offset.x = evt.offsetX || (evt.pageX - planets.screen.mg.offsetLeft);
     planets.input.mouse.offset.y = evt.offsetY || (evt.pageY - planets.screen.mg.offsetTop);
     planets.input.mouse.pos.x = evt.clientX;
     planets.input.mouse.pos.y = evt.clientY;
-    
 
-    var adjustScreenX = (planets.input.mouse.pos.x-planets.input.drag.start.x)-planets.input.drag.lastOffset.x;
-    var adjustScreenY = (planets.input.mouse.pos.y-planets.input.drag.start.y)-planets.input.drag.lastOffset.y;
+    var adjustScreenX = ((planets.input.mouse.pos.x)-planets.input.drag.start.x)-planets.input.drag.lastOffset.x;
+    var adjustScreenY = ((planets.input.mouse.pos.y)-planets.input.drag.start.y)-planets.input.drag.lastOffset.y;
 
     if((planets.input.drag.active)) {
-        planets.screen.x += (adjustScreenX/12.55);
-        planets.screen.y += (adjustScreenY/12.55);
+        planets.screen.x += (adjustScreenX);
+        planets.screen.y += (adjustScreenY);
 
         planets.input.drag.lastOffset = {
             x: planets.input.mouse.pos.x-planets.input.drag.start.x,
@@ -106,11 +151,7 @@ planets.listen('mousemove', function(evt) {
 });
 
 planets.listen('click', function(evt) {
-   if(planets.screen.gui.selected != false) {
-    if((evt.clientX>10)&&(evt.clientX<25)&&(evt.clientY>10)&&(evt.clientY<25)) {
-      planets.screen.gui.selected = false;
-    } 
-   }
+  
 
 });
 
