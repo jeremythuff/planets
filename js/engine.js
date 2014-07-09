@@ -203,6 +203,16 @@ Game.prototype = {
 
             var planets = game.assets.map.planets
 
+            for(var planet in planets) {
+                var planetTemp = planets[planet].temp;
+                if((planetTemp >= 0)&&(planetTemp <=14)) planets[planet].planetImage = game.assets.images["ice"];
+                if((planetTemp >= 15)&&(planetTemp <=35)) planets[planet].planetImage = game.assets.images["cold"];
+                if((planetTemp >= 36)&&(planetTemp <=60)) planets[planet].planetImage = game.assets.images["earthlike"];
+                if((planetTemp >= 61)&&(planetTemp <=84)) planets[planet].planetImage = game.assets.images["warm"];
+                if((planetTemp >= 85)&&(planetTemp <=100)) planets[planet].planetImage = game.assets.images["hot"];
+            }
+
+
             var allConnections = data.connections;
 
             for(var originId in allConnections) {
@@ -358,6 +368,8 @@ Game.prototype = {
     },
     drawPlanets: function(planets) {
         var game = this;
+        var selected = game.screen.gui.selected;
+
         for(var i=0; i < planets.length; i++) {
         
             var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
@@ -368,20 +380,25 @@ Game.prototype = {
 
             var planetName = planets[i].name;
             var planetTemp = parseInt(planets[i].temp);
-            var planetImage = game.assets.images["uknown"];
+            var planetImage = planets[i].planetImage;
             var settings = planetImage.settings;
             var planetColor = "#efefef"
-            if((planetTemp >= 0)&&(planetTemp <=14)) planetImage = game.assets.images["ice"];
-            if((planetTemp >= 15)&&(planetTemp <=35)) planetImage = game.assets.images["cold"];
-            if((planetTemp >= 36)&&(planetTemp <=60)) planetImage = game.assets.images["earthlike"];
-            if((planetTemp >= 61)&&(planetTemp <=84)) planetImage = game.assets.images["warm"];
-            if((planetTemp >= 85)&&(planetTemp <=100)) planetImage = game.assets.images["hot"];
             if(game.screen.z<.02) planetImage = game.assets.images["uknown"];
 
+            if( planets[i].name === selected) {   
+                game.screen.mg.fillStyle = "#f90";
+                game.screen.mg.beginPath();
+                game.screen.mg.arc(planetX, planetY, game.assets.map.w/(100)/1.35, 0, Math.PI*2, true); 
+                game.screen.mg.closePath();
+                game.screen.mg.fill();
+                game.screen.mg.drawImage(planetImage, planetX-(((game.assets.map.w/(100))*1.5)/2), planetY-(((game.assets.map.w/(100))*1.5)/2), (game.assets.map.w/(100))*1.5, (game.assets.map.w/(100))*1.5);
+                
+            } else {
+                game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
+            }
 
-            game.screen.mg.globalAlpha  = settings.alpha;    
-            game.screen.mg.drawImage(planetImage, planetX-((game.assets.map.w/(100))/2), planetY-((game.assets.map.w/(100))/2), game.assets.map.w/(100), game.assets.map.w/(100));
-            game.screen.mg.globalAlpha  = 1; 
+
+            
         
         }
     },
@@ -400,31 +417,163 @@ Game.prototype = {
     },
     drawGUI: function() {
         var game = this;
-        
-
         game.screen.guiCanvas.width = game.screen.guiCanvas.width;
 
-
-        
         game.leftPanel();        
         
     },
     leftPanel: function() {
         var game = this;
-        var selected = game.screen.gui.selected;
+        var selected = game.screen.utils.getPlanetByName(game, game.screen.gui.selected);
         var boxWidth = game.screen.fgCanvas.width*.18;
         var boxHeight = game.screen.fgCanvas.height;
 
-        game.screen.gui.fillStyle = '#333';
-        game.screen.gui.globalAlpha=0.9;
-        game.screen.gui.fillRect(0,0,boxWidth, boxHeight);
-        game.screen.gui.globalAlpha=1;
+        if(game.screen.gui.selected != false) {
 
-        if(selected != false) {
+            //panel bg
+            game.screen.gui.fillStyle = '#4b757f';
+            game.screen.gui.globalAlpha=0.5;
+            game.screen.gui.fillRect(0,0,boxWidth, boxHeight);
+            game.screen.gui.globalAlpha=1;
+
+            //close x
+            game.screen.gui.drawImage(game.assets.images["close"], 10, 10, 15, 15);
+
+
+            //planet name
+            var planetName = selected.name;
             game.screen.gui.fillStyle = '#efefef';
             game.screen.gui.font = 'italic bold 30px sans-serif';
+            var textWidth = game.screen.gui.measureText(planetName).width;
             game.screen.gui.textBaseline = 'bottom';
-            game.screen.gui.fillText(selected, 200, 200);
+            game.screen.gui.fillText(planetName, boxWidth-textWidth-10, boxHeight/20);
+
+            //coords
+            var coord = selected.XCoordinate + ", " + selected.YCoordinate;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = 'italic bold 11px sans-serif';
+            var coordWidth = game.screen.gui.measureText(coord).width;
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(coord, boxWidth-coordWidth-10, boxHeight/20+10);
+  
+            game.screen.gui.drawImage(selected.planetImage, (boxWidth/2)-((boxWidth/1)/2), boxHeight/10, boxWidth/1, boxWidth/1);
+
+            //temp
+            var temp = "Temp " + selected.temp;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = 'italic bold 11px sans-serif';
+            var tempdWidth = game.screen.gui.measureText(coord).width;
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(temp, (boxWidth/2)-(tempdWidth/2), (boxHeight/10)+(boxWidth/1));
+
+
+            //infastructure
+            game.screen.gui.fillStyle = '#fff';
+            game.screen.gui.font = 'italic bold 20px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText("Infastructure", 10, boxHeight*.50);
+
+            //money
+            var money = "Money: " + selected.money;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(money, 10, (boxHeight*.50)+15);
+
+            //supplies
+            var supplies = "Supplies: " + selected.supplies;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(supplies, 10, (boxHeight*.50)+30);
+
+            // mines
+            var mines = "Mines: " + selected.mines;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(mines, 10, (boxHeight*.50)+45);
+
+            // factories
+            var factories = "Factories: " + selected.factories;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(factories, 10, (boxHeight*.50)+60);
+
+            //minerals
+            game.screen.gui.fillStyle = '#fff';
+            game.screen.gui.font = 'italic bold 20px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText("Minerals", 10, boxHeight*.65);
+
+            // neutronium
+            var neutronium = "Neutronium: " + selected.neutroniumOnSurface +" / "+ selected.neutroniumInGround + "  @  %" + selected.neutroniumRate;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(neutronium, 10, (boxHeight*.65)+15);
+
+            // tritanium
+            var tritanium = "Tritanium: " + selected.tritaniumOnSurface +" / "+ selected.tritaniumInGround + "  @  %" + selected.tritaniumRate;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(tritanium, 10, (boxHeight*.65)+30);
+
+            // duranium
+            var duranium = "Duranium: " + selected.duraniumOnSurface +" / "+ selected.duraniumInGround + "  @  %" + selected.duraniumRate;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(duranium, 10, (boxHeight*.65)+45);
+
+            // molybdenum
+            var molybdenum = "Molybdenum: " + selected.molybdenumOnSurface +" / "+ selected.molybdenumInGround + "  @  %" + selected.molybdenumRate;
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(molybdenum, 10, (boxHeight*.65)+60);
+
+             //population
+            game.screen.gui.fillStyle = '#fff';
+            game.screen.gui.font = 'italic bold 20px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText("Population", 10, boxHeight*.80);
+
+            if(selected.natives != "NONE") {
+                // natives
+                var natives = "Natives: " + selected.nativesPopulation +" "+ selected.natives +" ("+selected.nativesGovernment+"), " + selected.nativesHappiness + " & taxed @ " + selected.nativesTaxRate;
+                game.screen.gui.fillStyle = '#f90';
+                game.screen.gui.font = '11px sans-serif';
+                game.screen.gui.textBaseline = 'bottom';
+                game.screen.gui.fillText(natives, 10, (boxHeight*.80)+15);
+            } else {
+                 // natives
+                var natives = "Natives: none";
+                game.screen.gui.fillStyle = '#f90';
+                game.screen.gui.font = '11px sans-serif';
+                game.screen.gui.textBaseline = 'bottom';
+                game.screen.gui.fillText(natives, 10, (boxHeight*.80)+15);
+
+            }
+                
+
+            if(selected.colonistPopulation > 0) {
+                // colonist
+                var colonist = "Colonist: " + selected.colonistPopulation +" ("+selected.colonistGovernment+"), taxed @ " + selected.colonistsTaxRate;
+                game.screen.gui.fillStyle = '#f90';
+                game.screen.gui.font = '11px sans-serif';
+                game.screen.gui.textBaseline = 'bottom';
+                game.screen.gui.fillText(colonist, 10, (boxHeight*.80)+30);
+            } else {
+                // colonist
+                var colonist = "Colonist: none";
+                game.screen.gui.fillStyle = '#f90';
+                game.screen.gui.font = '11px sans-serif';
+                game.screen.gui.textBaseline = 'bottom';
+                game.screen.gui.fillText(colonist, 10, (boxHeight*.80)+30);
+            }
         }
 
     },
@@ -474,6 +623,14 @@ Game.prototype = {
             },
             mapIsContainedOnScreen: function(game) {
                 return true//((game.assets.map.y + game.assets.map.h)<game.screen.bgCanvas.height)&&((game.assets.map.x + game.assets.map.w)<game.screen.bgCanvas.width) ;
+            },
+            getPlanetByName: function(game, name) {
+                var planets = game.assets.map.planets;
+                var planetObj = {};
+                for(var planet in planets) {
+                    if(planets[planet].name === name) planetObj = planets[planet];
+                }
+                return planetObj;
             },
             trackTransforms: function(ctx){
                 var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');

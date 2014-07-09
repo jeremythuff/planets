@@ -66,29 +66,22 @@ planets.listen('dblclick', function(evt) {
 
     for(planet in allPlanets) {
         
-        var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
-        var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
-        var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
+      var planetX = (planets.assets.map.x + allPlanets[planet].XCoordinate*planets.assets.map.oneLightYear);
+      var planetY = (planets.assets.map.y + allPlanets[planet].YCoordinate*planets.assets.map.oneLightYear);
+      var planetScaled = planets.screen.mg.getScaledXY(planets.screen.mg.getTransform(), planetX, planetY);    
 
-        var x = evt.clientX - planetScaled.x;
-        var y = evt.clientY - planetScaled.y;
-        var dist = Math.sqrt(y*y + x*x);
-        
+      var x = evt.clientX - planetScaled.x;
+      var y = evt.clientY - planetScaled.y;
+      var dist = Math.sqrt(y*y + x*x);
 
-        
-
-        if(dist < pw) {
-          planets.screen.gui.selected = allPlanets[planet].name;
-        }
-
+      if(dist < pw) {
+        planets.screen.gui.selected = allPlanets[planet].name;
+        break;
+      } else {
+        planets.screen.gui.selected = false;
+      }
     }
-
-      console.log("Number Selected: "+selectedCounter);
-
 });
-
-
-
 
 planets.listen('mousemove', function(evt) {
     planets.input.mouse.offset.x = evt.offsetX || (evt.pageX - planets.screen.mg.offsetLeft);
@@ -109,6 +102,15 @@ planets.listen('mousemove', function(evt) {
             y: planets.input.mouse.pos.y-planets.input.drag.start.y
         }
     }
+
+});
+
+planets.listen('click', function(evt) {
+   if(planets.screen.gui.selected != false) {
+    if((evt.clientX>10)&&(evt.clientX<25)&&(evt.clientY>10)&&(evt.clientY<25)) {
+      planets.screen.gui.selected = false;
+    } 
+   }
 
 });
 

@@ -130,5 +130,11 @@
             "originX": "0",
             "originY": "0"
         }
+    },
+    {
+        "name": "close",
+        "src": "img/close.png",
+        "group": "",
+        "settings": {}
     }
 ]
