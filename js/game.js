@@ -139,8 +139,9 @@ planets.listen('mousemove', function(evt) {
     var adjustScreenY = ((planets.input.mouse.pos.y)-planets.input.drag.start.y)-planets.input.drag.lastOffset.y;
 
     if((planets.input.drag.active)) {
-        planets.screen.x += (adjustScreenX);
-        planets.screen.y += (adjustScreenY);
+        console.log(Math.log(planets.screen.z*101));
+        planets.screen.x += (adjustScreenX/(Math.log(planets.screen.z*1001)));
+        planets.screen.y += (adjustScreenY/(Math.log(planets.screen.z*1001)));
 
         planets.input.drag.lastOffset = {
             x: planets.input.mouse.pos.x-planets.input.drag.start.x,
