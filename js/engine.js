@@ -360,11 +360,15 @@ Game.prototype = {
             planetY = Math.round(planetY);
 
             if(planets[i].colonistsPopulation > 0) {
+
+                var width = (game.assets.map.w/(100))*((planets[i].colonistsPopulation*planets[i].colonistsPopulation)/500000);
+                if(width > 30) width = 30;
+                if(width < 10) width = 10;
                 
                 game.screen.mg.globalAlpha  = .1;    
                 game.screen.mg.fillStyle = "#3FEBE8";
                 game.screen.mg.beginPath();
-                game.screen.mg.arc(planetX, planetY, (game.assets.map.w/(100))*(planets[i].colonistsPopulation/5000), 0, Math.PI*2, true); 
+                game.screen.mg.arc(planetX, planetY, width, 0, Math.PI*2, true); 
                 game.screen.mg.closePath();
                 game.screen.mg.fill();
                 game.screen.mg.globalAlpha  = 1; 
@@ -538,32 +542,100 @@ Game.prototype = {
             game.screen.gui.fillText("Minerals", 10, boxHeight*.65);
 
             // neutronium
-            var neutronium = "Neutronium: " + selected.neutroniumOnSurface +" / "+ selected.neutroniumInGround + "  @  %" + selected.neutroniumRate;
+            
+            game.screen.gui.beginPath();
+            game.screen.gui.fillStyle = "#4b757f";
+            var neutHeight = (100)*(selected.neutroniumInGround/10000);
+            if (neutHeight < 20) neutSurfHeight = 20;
+            var neutBaseLine = ((boxHeight*.65)+100)-neutHeight;
+            game.screen.gui.rect(20, neutBaseLine, 25, neutHeight);
+            game.screen.gui.fill();
+            game.screen.gui.closePath();
+
+            game.screen.gui.beginPath();
+            game.screen.gui.fillStyle = "#f90";
+            var neutSurfHeight = (100)*(selected.neutroniumOnSurface/10000);
+            if (neutSurfHeight < 10) neutSurfHeight = 10;
+            var neutSurfBaseLine = ((boxHeight*.65)+100)-neutSurfHeight;
+            game.screen.gui.rect(20, neutSurfBaseLine, 25, neutSurfHeight);
+            game.screen.gui.fill();
+            game.screen.gui.closePath();
+
             game.screen.gui.fillStyle = '#f90';
-            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.font = '9px sans-serif';
             game.screen.gui.textBaseline = 'bottom';
-            game.screen.gui.fillText(neutronium, 10, (boxHeight*.65)+15);
+            game.screen.gui.fillText(selected.neutroniumInGround, 20+(10-(game.screen.gui.measureText(selected.neutroniumInGround).width/2)), neutBaseLine+10);
+
+            game.screen.gui.fillStyle = '#4b757f';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(selected.neutroniumOnSurface, 20, neutSurfBaseLine+10);
+
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText("NEUT", 20, neutBaseLine+neutHeight+10);
+
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(selected.neutroniumRate+"%", 20, neutBaseLine+neutHeight+20);
+
+
+
 
             // tritanium
-            var tritanium = "Tritanium: " + selected.tritaniumOnSurface +" / "+ selected.tritaniumInGround + "  @  %" + selected.tritaniumRate;
-            game.screen.gui.fillStyle = '#f90';
-            game.screen.gui.font = '11px sans-serif';
-            game.screen.gui.textBaseline = 'bottom';
-            game.screen.gui.fillText(tritanium, 10, (boxHeight*.65)+30);
+            game.screen.gui.beginPath();
+            game.screen.gui.fillStyle = "#4b757f";
+            var neutHeight = (100)*(selected.neutroniumInGround/10000);
+            if (neutHeight < 20) neutSurfHeight = 20;
+            var neutBaseLine = ((boxHeight*.65)+100)-neutHeight;
+            game.screen.gui.rect(25, neutBaseLine, 25, neutHeight);
+            game.screen.gui.fill();
+            game.screen.gui.closePath();
 
-            // duranium
-            var duranium = "Duranium: " + selected.duraniumOnSurface +" / "+ selected.duraniumInGround + "  @  %" + selected.duraniumRate;
-            game.screen.gui.fillStyle = '#f90';
-            game.screen.gui.font = '11px sans-serif';
-            game.screen.gui.textBaseline = 'bottom';
-            game.screen.gui.fillText(duranium, 10, (boxHeight*.65)+45);
+            game.screen.gui.beginPath();
+            game.screen.gui.fillStyle = "#f90";
+            var neutSurfHeight = (100)*(selected.neutroniumOnSurface/10000);
+            if (neutSurfHeight < 10) neutSurfHeight = 10;
+            var neutSurfBaseLine = ((boxHeight*.65)+100)-neutSurfHeight;
+            game.screen.gui.rect(20, neutSurfBaseLine, 25, neutSurfHeight);
+            game.screen.gui.fill();
+            game.screen.gui.closePath();
 
-            // molybdenum
-            var molybdenum = "Molybdenum: " + selected.molybdenumOnSurface +" / "+ selected.molybdenumInGround + "  @  %" + selected.molybdenumRate;
             game.screen.gui.fillStyle = '#f90';
-            game.screen.gui.font = '11px sans-serif';
+            game.screen.gui.font = '9px sans-serif';
             game.screen.gui.textBaseline = 'bottom';
-            game.screen.gui.fillText(molybdenum, 10, (boxHeight*.65)+60);
+            game.screen.gui.fillText(selected.neutroniumInGround, 20+(10-(game.screen.gui.measureText(selected.neutroniumInGround).width/2)), neutBaseLine+10);
+
+            game.screen.gui.fillStyle = '#4b757f';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(selected.neutroniumOnSurface, 20, neutSurfBaseLine+10);
+
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText("NEUT", 20, neutBaseLine+neutHeight+10);
+
+            game.screen.gui.fillStyle = '#f90';
+            game.screen.gui.font = '9px sans-serif';
+            game.screen.gui.textBaseline = 'bottom';
+            game.screen.gui.fillText(selected.neutroniumRate+"%", 20, neutBaseLine+neutHeight+20);
+
+            // // duranium
+            // var duranium = "Duranium: " + selected.duraniumOnSurface +" / "+ selected.duraniumInGround + "  @  %" + selected.duraniumRate;
+            // game.screen.gui.fillStyle = '#f90';
+            // game.screen.gui.font = '11px sans-serif';
+            // game.screen.gui.textBaseline = 'bottom';
+            // game.screen.gui.fillText(duranium, 10, (boxHeight*.65)+45);
+
+            // // molybdenum
+            // var molybdenum = "Molybdenum: " + selected.molybdenumOnSurface +" / "+ selected.molybdenumInGround + "  @  %" + selected.molybdenumRate;
+            // game.screen.gui.fillStyle = '#f90';
+            // game.screen.gui.font = '11px sans-serif';
+            // game.screen.gui.textBaseline = 'bottom';
+            // game.screen.gui.fillText(molybdenum, 10, (boxHeight*.65)+60);
 
              //population
             game.screen.gui.fillStyle = '#fff';
