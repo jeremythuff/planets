@@ -351,6 +351,7 @@ Game.prototype = {
     drawRings: function(planets) {
         var game = this;
         var selected = game.screen.gui.selected;
+        game.screen.mg.beginPath();
         for(var i=0; i < planets.length; i++) {
         
             var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
@@ -365,25 +366,37 @@ Game.prototype = {
                 if(width > 30) width = 30;
                 if(width < 10) width = 10;
                 
-                game.screen.mg.globalAlpha  = .1;    
+                 
                 game.screen.mg.fillStyle = "#3FEBE8";
-                game.screen.mg.beginPath();
+                
                 game.screen.mg.arc(planetX, planetY, width, 0, Math.PI*2, true); 
                 game.screen.mg.closePath();
-                game.screen.mg.fill();
-                game.screen.mg.globalAlpha  = 1; 
-            }
-
-            if(planets[i].name === selected) {   
-                game.screen.mg.fillStyle = "#f90";
-                game.screen.mg.beginPath();
-                game.screen.mg.arc(planetX, planetY, game.assets.map.w/(100)/1.35, 0, Math.PI*2, true); 
-                game.screen.mg.closePath();
-                game.screen.mg.fill();
                 
-            }       
-        }
-    },
+                
+            }     
+        } 
+        game.screen.mg.globalAlpha  = .1;  
+        game.screen.mg.fill();
+        game.screen.mg.globalAlpha  = 1; 
+        for(var i=0; i < planets.length; i++) {
+            
+                var planetX = game.assets.map.x + planets[i].XCoordinate*game.assets.map.oneLightYear;
+                var planetY = game.assets.map.y + planets[i].YCoordinate*game.assets.map.oneLightYear;
+                
+                planetX = Math.round(planetX);
+                planetY = Math.round(planetY);
+
+                
+                if(planets[i].name === selected) {   
+                    game.screen.mg.fillStyle = "#f90";
+                    game.screen.mg.beginPath();
+                    game.screen.mg.arc(planetX, planetY, game.assets.map.w/(100)/1.35, 0, Math.PI*2, true); 
+                    game.screen.mg.closePath();
+                    game.screen.mg.fill();
+                    
+                }     
+            } 
+        },
     drawConnections: function(planets) {
         var game = this;
         var connections = game.assets.map.connections;
